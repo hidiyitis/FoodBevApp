@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - FoodBev</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <style>
+    /* VARIABLES (for example reference) */
+    :root {
+      --primary: #8B7355;
+      --primary-dark: #6B5B3D;
+      --shadow-soft: 0 4px 12px rgba(0,0,0,0.08); /* Custom shadow */
+    }
+
+    /* ===== CUSTOM UX STYLES ===== */
+
+    .category-btn {
+      transition: all 0.3s ease;
+      font-size: 0.9rem; /* Lebih ringkas */
+    }
+
+    .category-btn.active {
+      background-color: var(--primary) !important;
+      color: white !important;
+      border-color: var(--primary) !important;
+    }
+
+    .product-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border-radius: 12px; /* Menggunakan border-radius yang konsisten */
+      box-shadow: var(--shadow-soft);
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15); /* Shadow lebih kuat saat hover */
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      padding: 0.4em 0.6em;
+      font-size: 0.75rem;
+    }
+
+    .offcanvas {
+      width: 420px !important; /* Sedikit lebih lebar */
+    }
+
+    @media (max-width: 768px) {
+      .offcanvas {
+        width: 100% !important;
+      }
+    }
+
+    .quantity-btn {
+      width: 30px;
+      height: 30px;
+      font-size: 0.9rem;
+      padding: 0;
+      line-height: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .product-image {
+      height: 180px; /* Sedikit lebih pendek */
+      object-fit: cover;
+      width: 100%;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+    }
+
+    .welcome-section {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      border-radius: 12px !important;
+    }
+
+    .list-group-item .quantity-input {
+      width: 45px; /* Input quantity lebih kecil di cart */
+      height: 30px;
+      padding: 0;
+      text-align: center;
+      border: 1px solid var(--primary);
+    }
+
+    .checkout-btn {
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+  <div class="container">
+    <a class="navbar-brand fw-bold" th:href="@{/}">
+      <i class="bi bi-cup-hot-fill me-2 text-primary"></i>FoodBev
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" th:href="@{/user/dashboard}">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/user/orders}">My Orders</a>
+        </li>
+      </ul>
+
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <button class="btn btn-primary position-relative me-3 py-2 px-3 fw-semibold" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
+            <i class="bi bi-basket3 me-1"></i> Cart
+            <span class="cart-badge badge bg-danger rounded-pill" id="cartCount">0</span>
+          </button>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle me-1"></i>
+            <span th:text="${username} ?: 'User'">User</span>
+          </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" th:href="@{/user/profile}"><i class="bi bi-person me-2"></i>Profile</a></li>
+            <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form th:action="@{/auth/logout}" method="post" class="px-2">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="dropdown-item text-danger p-0 border-0 bg-transparent">
+                  <i class="bi bi-box-arrow-right me-2"></i>Logout
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+
+  <div class="row mb-5">
+    <div class="col-12">
+      <div class="welcome-section text-white rounded-3 p-4 shadow-sm">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h2 class="fw-bold mb-2">
+              Hello,
+              <span th:text="${username} ?: 'Valued Customer'">Valued Customer</span>! ☕
+            </h2>
+            <p class="mb-0 opacity-75">What delicious treat are you craving today?</p>
+
+            <div th:if="${isUser}" class="mt-2">
+              <span class="badge bg-light text-primary">Regular Customer</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-5 gy-3">
+    <div class="col-md-5">
+      <div class="input-group shadow-sm rounded-pill overflow-hidden">
+        <span class="input-group-text bg-white border-0 ps-4">
+          <i class="bi bi-search text-muted"></i>
+        </span>
+        <input type="text" class="form-control border-0 pe-4 rounded-end-pill" placeholder="Search food or drinks..." id="searchInput">
+      </div>
+    </div>
+    <div class="col-md-7">
+      <div class="d-flex flex-wrap gap-2 fw-semibold" id="categoryFilter">
+        <button class="btn btn-outline-primary category-btn active rounded-pill" data-category="all">All Items</button>
+        <button class="btn btn-outline-primary category-btn rounded-pill" data-category="food">🍔 Food</button>
+        <button class="btn btn-outline-primary category-btn rounded-pill" data-category="drink">☕ Drinks</button>
+        <button class="btn btn-outline-primary category-btn rounded-pill" data-category="dessert">🍰 Desserts</button>
+        <button class="btn btn-outline-primary category-btn rounded-pill" data-category="snack">🍟 Snacks</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4" id="productsGrid">
+    <div class="col-xl-3 col-lg-4 col-md-6 product-item" data-category="food">
+      <div class="card product-card border-0 h-100">
+        <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80"
+             class="card-img-top product-image" alt="Burger Special">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title fw-bold">Burger Special</h5>
+          <p class="card-text text-muted flex-grow-1 small">Beef patty with fresh vegetables and special sauce</p>
+          <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+            <span class="h5 text-primary fw-bold mb-0">Rp 45.000</span>
+            <button class="btn btn-primary add-to-cart fw-semibold" data-name="Burger Special" data-price="45000">
+              <i class="bi bi-plus-lg"></i> Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-4 col-md-6 product-item" data-category="food">
+      <div class="card product-card border-0 h-100">
+        <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80"
+             class="card-img-top product-image" alt="Pizza Margherita">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title fw-bold">Pizza Margherita</h5>
+          <p class="card-text text-muted flex-grow-1 small">Fresh tomato, mozzarella, and basil</p>
+          <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+            <span class="h5 text-primary fw-bold mb-0">Rp 75.000</span>
+            <button class="btn btn-primary add-to-cart fw-semibold" data-name="Pizza Margherita" data-price="75000">
+              <i class="bi bi-plus-lg"></i> Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-4 col-md-6 product-item" data-category="drink">
+      <div class="card product-card border-0 h-100">
+        <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80"
+             class="card-img-top product-image" alt="Espresso Coffee">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title fw-bold">Espresso Coffee</h5>
+          <p class="card-text text-muted flex-grow-1 small">Strong and rich Italian espresso</p>
+          <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+            <span class="h5 text-primary fw-bold mb-0">Rp 25.000</span>
+            <button class="btn btn-primary add-to-cart fw-semibold" data-name="Espresso Coffee" data-price="25000">
+              <i class="bi bi-plus-lg"></i> Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-lg-4 col-md-6 product-item" data-category="drink">
+      <div class="card product-card border-0 h-100">
+        <img src="https://images.unsplash.com/photo-1572490122747-3968b75cc699?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80"
+             class="card-img-top product-image" alt="Green Tea Latte">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title fw-bold">Green Tea Latte</h5>
+          <p class="card-text text-muted flex-grow-1 small">Creamy latte with premium matcha</p>
+          <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-auto">
+            <span class="h5 text-primary fw-bold mb-0">Rp 35.000</span>
+            <button class="btn btn-primary add-to-cart fw-semibold" data-name="Green Tea Latte" data-price="35000">
+              <i class="bi bi-plus-lg"></i> Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas">
+  <div class="offcanvas-header border-bottom">
+    <h5 class="offcanvas-title fw-bold text-primary"><i class="bi bi-basket3 me-2"></i> Your Cart Summary</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    <div id="emptyCart" class="text-center py-5">
+      <i class="bi bi-cart-x display-1 text-muted mb-3"></i>
+      <h6 class="text-muted fw-bold">Your cart is empty</h6>
+      <p class="text-muted small">Add some delicious items from our menu</p>
+    </div>
+
+    <div id="cartItems" style="display: none;">
+      <div class="list-group list-group-flush" id="cartItemsList">
+      </div>
+
+      <div class="border-top pt-3 mt-4">
+        <h6 class="fw-bold mb-3 text-primary">Order Summary</h6>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Subtotal</span>
+          <span id="cartSubtotal" class="fw-semibold">Rp 0</span>
+        </div>
+        <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
+          <span class="text-muted">Tax (10%)</span>
+          <span id="cartTax" class="fw-semibold">Rp 0</span>
+        </div>
+        <div class="d-flex justify-content-between fw-bold fs-5 text-primary">
+          <span>Total Payable</span>
+          <span id="cartTotal">Rp 0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="offcanvas-footer border-top p-3">
+    <button class="btn btn-primary w-100 btn-lg checkout-btn" id="checkoutBtn" disabled onclick="checkout()">
+      <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
+    </button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  let cart = [];
+  let currentCategory = 'all';
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', function() {
+    updateCart();
+    setupEventListeners();
+
+    // Show welcome message if this is user's first visit
+    const isFirstVisit = !localStorage.getItem('userVisited');
+    if (isFirstVisit) {
+      localStorage.setItem('userVisited', 'true');
+      // You can show a welcome tour or message here
+    }
+  });
+
+  function setupEventListeners() {
+    // Category filter
+    document.querySelectorAll('.category-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentCategory = this.dataset.category;
+        filterProducts();
+      });
+    });
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', filterProducts);
+
+    // Add to cart buttons
+    document.querySelectorAll('.add-to-cart').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const name = this.dataset.name;
+        const price = parseInt(this.dataset.price);
+        addToCart(name, price, this);
+      });
+    });
+  }
+
+  function filterProducts() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const products = document.querySelectorAll('.product-item');
+
+    products.forEach(product => {
+      const productName = product.querySelector('.card-title').textContent.toLowerCase();
+      const productDesc = product.querySelector('.card-text').textContent.toLowerCase();
+      const productCategory = product.dataset.category;
+
+      const matchesSearch = productName.includes(searchTerm) || productDesc.includes(searchTerm);
+      const matchesCategory = currentCategory === 'all' || productCategory === currentCategory;
+
+      if (matchesSearch && matchesCategory) {
+        product.style.display = 'block';
+      } else {
+        product.style.display = 'none';
+      }
+    });
+  }
+
+  function addToCart(name, price, button) {
+    const existingItem = cart.find(item => item.name === name);
+
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      cart.push({
+        name: name,
+        price: price,
+        quantity: 1
+      });
+    }
+
+    updateCart();
+
+    // Visual feedback
+    const originalHtml = button.innerHTML;
+    button.innerHTML = '<i class="bi bi-check-lg"></i> Added';
+    button.classList.remove('btn-primary');
+    button.classList.add('btn-success');
+
+    setTimeout(() => {
+      button.innerHTML = originalHtml;
+      button.classList.remove('btn-success');
+      button.classList.add('btn-primary');
+    }, 1000);
+  }
+
+  function updateCart() {
+    const cartCount = document.getElementById('cartCount');
+    const cartItems = document.getElementById('cartItems');
+    const emptyCart = document.getElementById('emptyCart');
+    const cartItemsList = document.getElementById('cartItemsList');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+
+    // Update cart count
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    cartCount.textContent = totalItems;
+
+    // Show/hide empty state
+    if (cart.length === 0) {
+      emptyCart.style.display = 'block';
+      cartItems.style.display = 'none';
+      checkoutBtn.disabled = true;
+    } else {
+      emptyCart.style.display = 'none';
+      cartItems.style.display = 'block';
+      checkoutBtn.disabled = false;
+
+      // Update cart items
+      cartItemsList.innerHTML = cart.map(item => `
+        <div class="list-group-item">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h6 class="mb-0 fw-semibold">${item.name}</h6>
+              <small class="text-muted">Rp ${item.price.toLocaleString()}</small>
+            </div>
+            <button class="btn btn-sm btn-outline-danger quantity-btn" onclick="removeFromCart('${item.name}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+          <div class="d-flex align-items-center">
+            <div class="input-group input-group-sm" style="width: 100px;">
+                <button class="btn btn-outline-primary quantity-btn" type="button" onclick="updateQuantity('${item.name}', -1)">-</button>
+                <input type="number" class="form-control quantity-input" value="${item.quantity}" min="1"
+                       onchange="setQuantity('${item.name}', this.value)">
+                <button class="btn btn-outline-primary quantity-btn" type="button" onclick="updateQuantity('${item.name}', 1)">+</button>
+            </div>
+            <span class="ms-auto fw-bold text-primary">Rp ${(item.price * item.quantity).toLocaleString()}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Update totals
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const tax = Math.floor(subtotal * 0.1);
+    const total = subtotal + tax;
+
+    document.getElementById('cartSubtotal').textContent = `Rp ${subtotal.toLocaleString()}`;
+    document.getElementById('cartTax').textContent = `Rp ${tax.toLocaleString()}`;
+    document.getElementById('cartTotal').textContent = `Rp ${total.toLocaleString()}`;
+  }
+
+  function updateQuantity(name, change) {
+    const item = cart.find(item => item.name === name);
+    if (item) {
+      item.quantity += change;
+      if (item.quantity < 1) {
+        removeFromCart(name);
+      } else {
+        updateCart();
+      }
+    }
+  }
+
+  function setQuantity(name, quantity) {
+    const item = cart.find(item => item.name === name);
+    if (item) {
+      item.quantity = parseInt(quantity) || 1;
+      updateCart();
+    }
+  }
+
+  function removeFromCart(name) {
+    cart = cart.filter(item => item.name !== name);
+    updateCart();
+  }
+
+  function checkout() {
+    if (cart.length === 0) {
+      alert('Your cart is empty!');
+      return;
+    }
+
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const tax = Math.floor(subtotal * 0.1);
+    const finalTotal = subtotal + tax;
+
+    const orderDetails = cart.map(item =>
+            `${item.name} x${item.quantity} - Rp ${(item.price * item.quantity).toLocaleString()}`
+    ).join('\n');
+
+    if (confirm(`Confirm Order?\n\n${orderDetails}\n\nTax: Rp ${tax.toLocaleString()}\nTotal: Rp ${finalTotal.toLocaleString()}\n\nProceed with payment?`)) {
+      alert(`Order placed successfully!\nTotal: Rp ${finalTotal.toLocaleString()}\nThank you for your order!`);
+
+      cart = [];
+      updateCart();
+
+      // Close cart offcanvas
+      const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas'));
+      offcanvas.hide();
+    }
+  }
+</script>
+</body>
+</html>

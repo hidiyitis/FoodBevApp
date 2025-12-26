@@ -1,4 +1,4 @@
-package com.foodbev.FoodBevApp.controller;
+package com.foodbev.FoodBevApp.controller.admin;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;

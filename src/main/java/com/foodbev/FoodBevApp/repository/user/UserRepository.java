@@ -1,6 +1,6 @@
-package com.foodbev.FoodBevApp.repository;
+package com.foodbev.FoodBevApp.repository.user;
 
-import com.foodbev.FoodBevApp.entity.User;
+import com.foodbev.FoodBevApp.entity.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

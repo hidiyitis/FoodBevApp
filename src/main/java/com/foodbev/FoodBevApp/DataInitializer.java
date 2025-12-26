@@ -1,7 +1,7 @@
 package com.foodbev.FoodBevApp;
 
-import com.foodbev.FoodBevApp.entity.User;
-import com.foodbev.FoodBevApp.repository.UserRepository;
+import com.foodbev.FoodBevApp.entity.user.User;
+import com.foodbev.FoodBevApp.repository.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;

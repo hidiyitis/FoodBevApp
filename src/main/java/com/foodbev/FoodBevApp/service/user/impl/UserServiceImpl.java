@@ -1,8 +1,9 @@
-package com.foodbev.FoodBevApp.service;
+package com.foodbev.FoodBevApp.service.user.impl;
 
-import com.foodbev.FoodBevApp.dto.UserRegistrationDto;
-import com.foodbev.FoodBevApp.entity.User;
-import com.foodbev.FoodBevApp.repository.UserRepository;
+import com.foodbev.FoodBevApp.dto.user.UserRegistrationDto;
+import com.foodbev.FoodBevApp.entity.user.User;
+import com.foodbev.FoodBevApp.repository.user.UserRepository;
+import com.foodbev.FoodBevApp.service.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

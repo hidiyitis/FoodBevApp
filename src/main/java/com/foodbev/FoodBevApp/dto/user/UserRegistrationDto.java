@@ -1,4 +1,4 @@
-package com.foodbev.FoodBevApp.dto;
+package com.foodbev.FoodBevApp.dto.user;
 
 import lombok.Data;
 

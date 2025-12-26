@@ -1,4 +1,4 @@
-package com.foodbev.FoodBevApp.entity;
+package com.foodbev.FoodBevApp.entity.user;
 
 import jakarta.persistence.*;
 import lombok.Data;

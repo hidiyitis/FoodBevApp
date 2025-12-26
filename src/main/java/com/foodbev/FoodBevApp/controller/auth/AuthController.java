@@ -1,8 +1,8 @@
 package com.foodbev.FoodBevApp.controller.auth;
 
-import com.foodbev.FoodBevApp.dto.UserRegistrationDto;
-import com.foodbev.FoodBevApp.entity.User;
-import com.foodbev.FoodBevApp.service.UserService;
+import com.foodbev.FoodBevApp.dto.user.UserRegistrationDto;
+import com.foodbev.FoodBevApp.entity.user.User;
+import com.foodbev.FoodBevApp.service.user.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;

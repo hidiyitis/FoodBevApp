@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cart - FoodBev</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <style>
+        :root {
+            --primary: #8B7355;
+            --primary-dark: #6B5B3D;
+            --shadow-soft: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .cart-card {
+            border-radius: 12px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .qty-input {
+            width: 70px;
+            text-align: center;
+        }
+
+        .cart-total-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-radius: 12px;
+        }
+
+        .btn.btn-primary:disabled,
+        .btn.btn-primary.disabled {
+            background-color: var(--primary) !important;
+            border-color: var(--primary) !important;
+            color: #fff !important;
+            opacity: 1 !important;         
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">
+            <i class="bi bi-cup-hot-fill me-2 text-primary"></i>FoodBev
+        </a>
+
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/user/dashboard}">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active fw-semibold" th:href="@{/user/cart}">My Cart</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container py-5">
+
+    <h3 class="fw-bold mb-4">
+        <i class="bi bi-basket3 me-2"></i> My Cart
+    </h3>
+
+    <div class="card cart-card border-0 mb-4">
+        <div class="card-body p-0">
+
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                <tr>
+                    <th>Product</th>
+                    <th class="text-center" width="120">Qty</th>
+                    <th>Price</th>
+                    <th>Subtotal</th>
+                    <th width="50"></th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="item : ${cartItems}">
+                    <td class="fw-semibold" th:text="${item.product.name}">Product</td>
+
+                    <td class="text-center">
+                        <input type="number"
+                               min="1"
+                               class="form-control form-control-sm qty-input mx-auto"
+                               th:value="${item.quantity}"
+                               th:onchange="'updateQty(' + ${item.product.id} + ', this.value)'">
+                    </td>
+
+                    <td>
+                        Rp <span th:text="${#numbers.formatInteger(item.product.calculatePrice(),0,'POINT')}">0</span>
+                    </td>
+
+                    <td class="fw-semibold">
+                        Rp <span th:text="${#numbers.formatInteger(item.product.calculatePrice() * item.quantity,0,'POINT')}">0</span>
+                    </td>
+
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-danger"
+                                th:onclick="'removeItem(' + ${item.product.id} + ')'">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(cartItems)}">
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="bi bi-basket display-6 d-block mb-2"></i>
+                        Your cart is empty
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+    <!-- TOTAL & CHECKOUT -->
+    <div class="row justify-content-end mt-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+
+                    <h5 class="fw-semibold mb-3">Order Summary</h5>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <span>
+                            Rp
+                            <span th:text="${#numbers.formatInteger(subtotal,0,'POINT')}">0</span>
+                        </span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tax (10%)</span>
+                        <span>
+                            Rp
+                            <span th:text="${#numbers.formatInteger(tax,0,'POINT')}">0</span>
+                        </span>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between fs-5 fw-bold">
+                        <span>Total</span>
+                        <span class="text-primary">
+                            Rp
+                            <span th:text="${#numbers.formatInteger(grandTotal,0,'POINT')}">0</span>
+                        </span>
+                    </div>
+
+                    <button class="btn btn-primary w-100 mt-3 fw-semibold"
+                            id="payBtn"
+                            data-cart-empty="[[${#lists.isEmpty(cartItems)}]]"
+                            onclick="checkout()">
+                        <i class="bi bi-credit-card me-1"></i> Pay Now
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const isCartEmpty = [[${#lists.isEmpty(cartItems)}]];
+</script>
+
+<script>
+    function updateQty(productId, qty) {
+        if (qty < 1) return;
+
+        fetch('/user/cart/update', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `productId=${productId}&quantity=${qty}`
+        }).then(() => location.reload());
+    }
+
+    function removeItem(productId) {
+        fetch('/user/cart/remove', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `productId=${productId}`
+        }).then(() => location.reload());
+    }
+
+    function checkout() {
+        const isCartEmpty =
+            document.getElementById("payBtn").dataset.cartEmpty === "true";
+
+        if (isCartEmpty) {
+            alert("Anda belum memesan apapun");
+            return;
+        }
+
+        const confirmOrder = confirm("Apakah pesanan anda sudah benar?");
+
+        if (!confirmOrder) {
+            return;
+        }
+
+        fetch('/user/cart/clear', { method: 'POST' })
+            .then(() => {
+                window.location.href = '/dashboard';
+            });
+    }
+</script>
+
+</body>
+</html>

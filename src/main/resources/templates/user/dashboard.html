@@ -140,10 +140,11 @@
 
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <button class="btn btn-primary position-relative me-3 py-2 px-3 fw-semibold" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
-                        <i class="bi bi-basket3 me-1"></i> Cart
-                        <span class="cart-badge badge bg-danger rounded-pill" id="cartCount">0</span>
-                    </button>
+                    <a th:href="@{/user/cart}"
+                        class="btn btn-primary position-relative me-3 py-2 px-3 fw-semibold">
+                            <i class="bi bi-basket3 me-1"></i> Cart
+                            <span class="cart-badge badge bg-danger rounded-pill" id="cartCount">0</span>
+                    </a>
                 </li>
 
                 <li class="nav-item dropdown">
@@ -346,214 +347,45 @@
 
 </div>
 
-<!-- Cart Offcanvas -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas">
-    <div class="offcanvas-header border-bottom">
-        <h5 class="offcanvas-title fw-bold text-primary"><i class="bi bi-basket3 me-2"></i> Your Cart Summary</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body">
-        <div id="emptyCart" class="text-center py-5">
-            <i class="bi bi-cart-x display-1 text-muted mb-3"></i>
-            <h6 class="text-muted fw-bold">Your cart is empty</h6>
-            <p class="text-muted small">Add some delicious items from our menu</p>
-        </div>
-
-        <div id="cartItems" style="display: none;">
-            <div class="list-group list-group-flush" id="cartItemsList"></div>
-
-            <div class="border-top pt-3 mt-4">
-                <h6 class="fw-bold mb-3 text-primary">Order Summary</h6>
-                <div class="d-flex justify-content-between mb-2">
-                    <span class="text-muted">Subtotal</span>
-                    <span id="cartSubtotal" class="fw-semibold">Rp 0</span>
-                </div>
-                <div class="d-flex justify-content-between mb-3 border-bottom pb-3">
-                    <span class="text-muted">Tax (10%)</span>
-                    <span id="cartTax" class="fw-semibold">Rp 0</span>
-                </div>
-                <div class="d-flex justify-content-between fw-bold fs-5 text-primary">
-                    <span>Total Payable</span>
-                    <span id="cartTotal">Rp 0</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="offcanvas-footer border-top p-3">
-        <button class="btn btn-primary w-100 btn-lg checkout-btn" id="checkoutBtn" disabled onclick="checkout()">
-            <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
-        </button>
-    </div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    let cart = [];
+    document.addEventListener('DOMContentLoaded', function () {
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // Load cart from localStorage
-        const savedCart = localStorage.getItem('foodbev_cart');
-        if (savedCart) {
-            cart = JSON.parse(savedCart);
-        }
-        updateCart();
-        setupEventListeners();
-    });
+        const cartCountEl = document.getElementById('cartCount');
 
-    function setupEventListeners() {
-        // Client-side search (filters current page only)
-        document.getElementById('searchInput').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            document.querySelectorAll('.product-item').forEach(product => {
-                const name = product.dataset.name || '';
-                const visible = name.includes(searchTerm);
-                product.style.display = visible ? 'block' : 'none';
-            });
-        });
-
-        // Add to cart buttons
         document.querySelectorAll('.add-to-cart').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.dataset.id;
-                const name = this.dataset.name;
-                const price = parseFloat(this.dataset.price);
-                addToCart(id, name, price, this);
+            btn.addEventListener('click', function () {
+
+                const productId = this.dataset.id;
+                const quantity = 1;
+
+                fetch('/user/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `productId=${productId}&quantity=${quantity}`
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Gagal menambahkan ke cart');
+                    }
+                    return res.text();
+                })
+                .then(msg => {
+
+                    let currentCount = parseInt(cartCountEl.innerText) || 0;
+                    cartCountEl.innerText = currentCount + 1;
+
+                    console.log(msg);
+                })
+                .catch(err => {
+                    alert(err.message);
+                });
             });
         });
-    }
-
-    function addToCart(id, name, price, button) {
-        const existingItem = cart.find(item => item.id === id);
-
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cart.push({ id, name, price, quantity: 1 });
-        }
-
-        saveCart();
-        updateCart();
-
-        // Visual feedback
-        const originalHtml = button.innerHTML;
-        button.innerHTML = '<i class="bi bi-check-lg"></i> Added';
-        button.classList.remove('btn-primary');
-        button.classList.add('btn-success');
-
-        setTimeout(() => {
-            button.innerHTML = originalHtml;
-            button.classList.remove('btn-success');
-            button.classList.add('btn-primary');
-        }, 1000);
-    }
-
-    function saveCart() {
-        localStorage.setItem('foodbev_cart', JSON.stringify(cart));
-    }
-
-    function updateCart() {
-        const cartCount = document.getElementById('cartCount');
-        const cartItems = document.getElementById('cartItems');
-        const emptyCart = document.getElementById('emptyCart');
-        const cartItemsList = document.getElementById('cartItemsList');
-        const checkoutBtn = document.getElementById('checkoutBtn');
-
-        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-        cartCount.textContent = totalItems;
-
-        if (cart.length === 0) {
-            emptyCart.style.display = 'block';
-            cartItems.style.display = 'none';
-            checkoutBtn.disabled = true;
-        } else {
-            emptyCart.style.display = 'none';
-            cartItems.style.display = 'block';
-            checkoutBtn.disabled = false;
-
-            cartItemsList.innerHTML = cart.map(item => `
-        <div class="list-group-item">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <div>
-              <h6 class="mb-0 fw-semibold">${item.name}</h6>
-              <small class="text-muted">Rp ${item.price.toLocaleString('id-ID')}</small>
-            </div>
-            <button class="btn btn-sm btn-outline-danger quantity-btn" onclick="removeFromCart('${item.id}')">
-              <i class="bi bi-trash"></i>
-            </button>
-          </div>
-          <div class="d-flex align-items-center">
-            <div class="input-group input-group-sm" style="width: 100px;">
-              <button class="btn btn-outline-primary quantity-btn" type="button" onclick="updateQuantity('${item.id}', -1)">-</button>
-              <input type="number" class="form-control quantity-input" value="${item.quantity}" min="1"
-                     onchange="setQuantity('${item.id}', this.value)">
-              <button class="btn btn-outline-primary quantity-btn" type="button" onclick="updateQuantity('${item.id}', 1)">+</button>
-            </div>
-            <span class="ms-auto fw-bold text-primary">Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</span>
-          </div>
-        </div>
-      `).join('');
-        }
-
-        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const tax = Math.floor(subtotal * 0.1);
-        const total = subtotal + tax;
-
-        document.getElementById('cartSubtotal').textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
-        document.getElementById('cartTax').textContent = `Rp ${tax.toLocaleString('id-ID')}`;
-        document.getElementById('cartTotal').textContent = `Rp ${total.toLocaleString('id-ID')}`;
-    }
-
-    function updateQuantity(id, change) {
-        const item = cart.find(item => item.id === id);
-        if (item) {
-            item.quantity += change;
-            if (item.quantity < 1) {
-                removeFromCart(id);
-            } else {
-                saveCart();
-                updateCart();
-            }
-        }
-    }
-
-    function setQuantity(id, quantity) {
-        const item = cart.find(item => item.id === id);
-        if (item) {
-            item.quantity = parseInt(quantity) || 1;
-            saveCart();
-            updateCart();
-        }
-    }
-
-    function removeFromCart(id) {
-        cart = cart.filter(item => item.id !== id);
-        saveCart();
-        updateCart();
-    }
-
-    function checkout() {
-        if (cart.length === 0) {
-            alert('Your cart is empty!');
-            return;
-        }
-
-        const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const tax = Math.floor(subtotal * 0.1);
-        const finalTotal = subtotal + tax;
-
-        const orderDetails = cart.map(item =>
-            `${item.name} x${item.quantity} - Rp ${(item.price * item.quantity).toLocaleString('id-ID')}`
-        ).join('\n');
-
-        if (confirm(`Confirm Order?\n\n${orderDetails}\n\nTax: Rp ${tax.toLocaleString('id-ID')}\nTotal: Rp ${finalTotal.toLocaleString('id-ID')}\n\nProceed with payment?`)) {
-            alert(`Order placed successfully!\nTotal: Rp ${finalTotal.toLocaleString('id-ID')}\nThank you for your order!`);
-            cart = [];
-            saveCart();
-            updateCart();
-            bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas')).hide();
-        }
-    }
+    });
 </script>
 </body>
 </html>

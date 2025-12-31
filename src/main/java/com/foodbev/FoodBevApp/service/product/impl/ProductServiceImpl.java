@@ -155,4 +155,10 @@ public class ProductServiceImpl implements ProductService {
         NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
         return formatter.format(price);
     }
+    
+    @Override
+    public Product findById(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+    }
 }

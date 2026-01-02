@@ -67,6 +67,12 @@ public class FileStorageServiceImpl implements FileStorageService {
             return;
         }
 
+        // Only delete files that are stored locally (URLs starting with our baseUrl)
+        if (!fileUrl.startsWith(baseUrl)) {
+            log.info("Skipping deletion of external URL: {}", fileUrl);
+            return;
+        }
+
         try {
             String relativePath = fileUrl.replace(baseUrl + "/", "");
             Path filePath = Paths.get(uploadDir, relativePath);

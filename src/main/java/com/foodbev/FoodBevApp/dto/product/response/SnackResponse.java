@@ -12,6 +12,6 @@ public class SnackResponse extends ProductBaseResponse {
     private SnackType snackType;
     private Integer calories;
     private Boolean isGlutenFree;
-    private String caloriesDisplay; // "150 cal" for Thymeleaf
-    private String glutenFreeBadge; // "Gluten-Free" or empty
+    private String glutenFreeBadge;
+    private String caloriesDisplay;
 }

@@ -2,7 +2,9 @@ package com.foodbev.FoodBevApp.dto.product.request;
 
 import com.foodbev.FoodBevApp.entity.product.enums.CoffeeType;
 import com.foodbev.FoodBevApp.entity.product.enums.ProductSize;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter
@@ -14,14 +16,11 @@ public class CoffeeRequest extends ProductBaseRequest {
     @NotNull(message = "Coffee type is required")
     private CoffeeType coffeeType;
 
-    @NotNull(message = "Size is required")
-    private ProductSize size;
+    private ProductSize size = ProductSize.MEDIUM;
 
-    @NotNull(message = "Temperature preference is required")
-    private Boolean isHot;
+    private Boolean isHot = true;
 
-    @NotNull(message = "Espresso shots is required")
-    @Min(value = 1, message = "Minimum 1 espresso shot")
-    @Max(value = 5, message = "Maximum 5 espresso shots")
-    private Integer espressoShots;
+    @Min(value = 1, message = "Espresso shots must be at least 1")
+    @Max(value = 5, message = "Espresso shots cannot exceed 5")
+    private Integer espressoShots = 1;
 }

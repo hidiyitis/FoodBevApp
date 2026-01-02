@@ -14,7 +14,7 @@ public class CoffeeResponse extends ProductBaseResponse {
     private ProductSize size;
     private Boolean isHot;
     private Integer espressoShots;
-    private String temperatureDisplay; // "Hot" or "Iced" for Thymeleaf
-    private String sizeDisplay; // "Small", "Medium", "Large"
+    private String temperatureDisplay;
+    private String sizeDisplay;
 }
 

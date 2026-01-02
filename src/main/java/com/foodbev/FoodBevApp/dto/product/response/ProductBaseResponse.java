@@ -2,10 +2,7 @@ package com.foodbev.FoodBevApp.dto.product.response;
 
 import com.foodbev.FoodBevApp.entity.product.enums.ProductCategory;
 import com.foodbev.FoodBevApp.entity.product.enums.ProductStatus;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,4 +23,3 @@ public abstract class ProductBaseResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-

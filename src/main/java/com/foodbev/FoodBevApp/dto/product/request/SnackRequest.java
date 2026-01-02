@@ -1,7 +1,8 @@
 package com.foodbev.FoodBevApp.dto.product.request;
 
 import com.foodbev.FoodBevApp.entity.product.enums.SnackType;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter
@@ -14,9 +15,7 @@ public class SnackRequest extends ProductBaseRequest {
     private SnackType snackType;
 
     @Min(value = 0, message = "Calories cannot be negative")
-    @Max(value = 2000, message = "Calories cannot exceed 2000")
     private Integer calories;
 
-    @NotNull(message = "Gluten-free status is required")
-    private Boolean isGlutenFree;
+    private Boolean isGlutenFree = false;
 }

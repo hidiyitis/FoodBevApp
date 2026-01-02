@@ -1,12 +1,10 @@
 package com.foodbev.FoodBevApp.dto.product.request;
 
-import com.foodbev.FoodBevApp.entity.product.enums.ProductCategory;
 import com.foodbev.FoodBevApp.entity.product.enums.ProductStatus;
-import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -16,16 +14,13 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public abstract class ProductBaseRequest {
 
-    @NotBlank(message = "Product name is required")
-    @Size(min = 3, max = 100, message = "Name must be between 3 and 100 characters")
+    @NotBlank(message = "Name is required")
     private String name;
 
-    @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
 
     @NotNull(message = "Base price is required")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
-    @Digits(integer = 10, fraction = 2, message = "Invalid price format")
+    @Positive(message = "Base price must be positive")
     private BigDecimal basePrice;
 
     @NotNull(message = "Status is required")
@@ -33,4 +28,3 @@ public abstract class ProductBaseRequest {
 
     private String imageUrl;
 }
-

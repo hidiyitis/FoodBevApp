@@ -15,10 +15,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface ProductService {
+    // Create
     FoodResponse createFood(FoodRequest request, MultipartFile image);
     SnackResponse createSnack(SnackRequest request, MultipartFile image);
     CoffeeResponse createCoffee(CoffeeRequest request, MultipartFile image);
-    String updateProductImage(Long productId, MultipartFile image);
+
+    // Update (image handling included)
+    FoodResponse updateFood(Long id, FoodRequest request, MultipartFile image);
+    SnackResponse updateSnack(Long id, SnackRequest request, MultipartFile image);
+    CoffeeResponse updateCoffee(Long id, CoffeeRequest request, MultipartFile image);
+
+    // Read
     Page<ProductListResponse> getAllProducts(ProductCategory category, ProductStatus status, Pageable pageable);
     Product findById(Long id);
+
+    // Delete
+    void deleteProduct(Long id);
 }

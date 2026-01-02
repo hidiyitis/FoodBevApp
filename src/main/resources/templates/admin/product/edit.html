@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product - FoodBev Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        :root {
+            --primary: #8B7355;
+            --primary-dark: #6B5B3D;
+            --danger: #dc3545;
+            --border-radius: 12px;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            padding: 0.75rem 1rem;
+        }
+
+        .sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .sidebar .nav-link.active {
+            background: white !important;
+            color: var(--primary) !important;
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logout-btn {
+            background: transparent;
+            color: var(--danger) !important;
+            border: 1px solid var(--danger);
+            border-radius: var(--border-radius);
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            transition: var(--transition);
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white !important;
+            border-color: var(--danger);
+        }
+
+        .image-preview-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+        }
+
+        .image-preview {
+            width: 150px;
+            height: 150px;
+            border: 2px dashed #dee2e6;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .image-preview:hover {
+            border-color: var(--primary);
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview .placeholder {
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .image-preview .placeholder i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-remove-image {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .product-type-badge {
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+        }
+
+        .product-type-badge.food {
+            background-color: #ffeeba;
+            color: #856404;
+        }
+
+        .product-type-badge.snack {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .product-type-badge.coffee {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar text-white p-0">
+            <div class="d-flex flex-column h-100">
+                <!-- Sidebar Header -->
+                <div class="p-4 border-bottom border-white border-opacity-10">
+                    <a th:href="@{/}" class="text-white text-decoration-none">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-cup-hot-fill me-2"></i>FoodBev Admin</h5>
+                    </a>
+                </div>
+
+                <!-- Sidebar Navigation -->
+                <nav class="flex-grow-1 p-3">
+                    <ul class="nav nav-pills flex-column">
+                        <li class="nav-item">
+                            <a th:href="@{/admin/dashboard}" class="nav-link mb-2">
+                                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/admin/products}" class="nav-link active mb-2">
+                                <i class="bi bi-box-seam me-2"></i>Product Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/admin/users}" class="nav-link mb-2">
+                                <i class="bi bi-people me-2"></i>User Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/admin/orders}" class="nav-link mb-2">
+                                <i class="bi bi-cart me-2"></i>Order Management
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- Sidebar Footer -->
+                <div class="sidebar-footer">
+                    <form th:action="@{/auth/logout}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="logout-btn">
+                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 ms-sm-auto bg-light min-vh-100">
+            <div class="bg-white border-bottom p-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2">
+                        <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a th:href="@{/admin/products}">Products</a></li>
+                        <li class="breadcrumb-item active">Edit Product</li>
+                    </ol>
+                </nav>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 fw-bold mb-1">Edit Product</h1>
+                        <p class="text-muted mb-0">Update product information</p>
+                    </div>
+                    <span class="product-type-badge"
+                          th:classappend="${productType == 'FOOD'} ? 'food' : (${productType == 'SNACK'} ? 'snack' : 'coffee')">
+                        <i class="bi me-1"
+                           th:classappend="${productType == 'FOOD'} ? 'bi-egg-fried' : (${productType == 'SNACK'} ? 'bi-cookie' : 'bi-cup-hot')"></i>
+                        <span th:text="${productType}"></span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="container-fluid mt-4">
+                <!-- Alert Messages -->
+                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span th:text="${successMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Edit Form Card -->
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Product Details</h5>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- Food Edit Form -->
+                        <form th:if="${productType == 'FOOD'}"
+                              th:action="@{/admin/products/edit/{id}/food(id=${productId})}"
+                              method="post"
+                              enctype="multipart/form-data">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                            <div class="row">
+                                <!-- Image Upload -->
+                                <div class="col-md-3 mb-4">
+                                    <label class="form-label">Product Image</label>
+                                    <div class="image-preview-container">
+                                        <div class="image-preview" onclick="document.getElementById('foodImage').click()">
+                                            <div class="placeholder" id="foodImagePlaceholder"
+                                                 th:style="${food.imageUrl != null} ? 'display: none;' : ''">
+                                                <i class="bi bi-cloud-upload d-block"></i>
+                                                <small>Click to upload</small>
+                                            </div>
+                                            <img id="foodImagePreview"
+                                                 th:src="${food.imageUrl}"
+                                                 alt="Preview"
+                                                 th:style="${food.imageUrl != null} ? '' : 'display: none;'">
+                                        </div>
+                                        <button type="button"
+                                                class="btn btn-danger btn-remove-image"
+                                                id="foodRemoveBtn"
+                                                th:style="${food.imageUrl != null} ? '' : 'display: none;'"
+                                                onclick="removeImage('foodImagePreview', 'foodImagePlaceholder', 'foodImage', 'foodRemoveBtn')">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                    <input type="file" id="foodImage" name="image" accept="image/*"
+                                           class="d-none" onchange="previewImage(this, 'foodImagePreview', 'foodImagePlaceholder', 'foodRemoveBtn')">
+                                    <small class="text-muted d-block mt-2">Max 5MB (JPG, PNG, GIF)</small>
+                                </div>
+
+                                <!-- Form Fields -->
+                                <div class="col-md-9">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="name" class="form-control" th:value="${food.name}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Food Type <span class="text-danger">*</span></label>
+                                            <select name="foodType" class="form-select" required>
+                                                <option value="">Select Type</option>
+                                                <option th:each="type : ${foodTypes}"
+                                                        th:value="${type}"
+                                                        th:text="${type}"
+                                                        th:selected="${type == food.foodType}"></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Base Price (Rp) <span class="text-danger">*</span></label>
+                                            <input type="number" name="basePrice" class="form-control" min="0" step="1000"
+                                                   th:value="${food.basePrice}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Status <span class="text-danger">*</span></label>
+                                            <select name="status" class="form-select" required>
+                                                <option th:each="stat : ${statuses}"
+                                                        th:value="${stat}"
+                                                        th:text="${stat}"
+                                                        th:selected="${stat == food.status}"></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Cuisine Type</label>
+                                            <input type="text" name="cuisineType" class="form-control"
+                                                   th:value="${food.cuisineType}" placeholder="e.g., Italian, Asian">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Preparation Time (minutes) <span class="text-danger">*</span></label>
+                                            <input type="number" name="preparationTime" class="form-control" min="1" max="120"
+                                                   th:value="${food.preparationTime}" required>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">Description</label>
+                                            <textarea name="description" class="form-control" rows="3"
+                                                      th:text="${food.description}"></textarea>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="form-check">
+                                                <input type="checkbox" name="isVegetarian" value="true"
+                                                       class="form-check-input" id="isVegetarian"
+                                                       th:checked="${food.isVegetarian}">
+                                                <label class="form-check-label" for="isVegetarian">
+                                                    <i class="bi bi-leaf text-success me-1"></i>Vegetarian
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a th:href="@{/admin/products}" class="btn btn-outline-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle me-1"></i>Update Food
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Snack Edit Form -->
+                        <form th:if="${productType == 'SNACK'}"
+                              th:action="@{/admin/products/edit/{id}/snack(id=${productId})}"
+                              method="post"
+                              enctype="multipart/form-data">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                            <div class="row">
+                                <!-- Image Upload -->
+                                <div class="col-md-3 mb-4">
+                                    <label class="form-label">Product Image</label>
+                                    <div class="image-preview-container">
+                                        <div class="image-preview" onclick="document.getElementById('snackImage').click()">
+                                            <div class="placeholder" id="snackImagePlaceholder"
+                                                 th:style="${snack.imageUrl != null} ? 'display: none;' : ''">
+                                                <i class="bi bi-cloud-upload d-block"></i>
+                                                <small>Click to upload</small>
+                                            </div>
+                                            <img id="snackImagePreview"
+                                                 th:src="${snack.imageUrl}"
+                                                 alt="Preview"
+                                                 th:style="${snack.imageUrl != null} ? '' : 'display: none;'">
+                                        </div>
+                                        <button type="button"
+                                                class="btn btn-danger btn-remove-image"
+                                                id="snackRemoveBtn"
+                                                th:style="${snack.imageUrl != null} ? '' : 'display: none;'"
+                                                onclick="removeImage('snackImagePreview', 'snackImagePlaceholder', 'snackImage', 'snackRemoveBtn')">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                    <input type="file" id="snackImage" name="image" accept="image/*"
+                                           class="d-none" onchange="previewImage(this, 'snackImagePreview', 'snackImagePlaceholder', 'snackRemoveBtn')">
+                                    <small class="text-muted d-block mt-2">Max 5MB (JPG, PNG, GIF)</small>
+                                </div>
+
+                                <!-- Form Fields -->
+                                <div class="col-md-9">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="name" class="form-control" th:value="${snack.name}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Snack Type <span class="text-danger">*</span></label>
+                                            <select name="snackType" class="form-select" required>
+                                                <option value="">Select Type</option>
+                                                <option th:each="type : ${snackTypes}"
+                                                        th:value="${type}"
+                                                        th:text="${type}"
+                                                        th:selected="${type == snack.snackType}"></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Base Price (Rp) <span class="text-danger">*</span></label>
+                                            <input type="number" name="basePrice" class="form-control" min="0" step="1000"
+                                                   th:value="${snack.basePrice}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Status <span class="text-danger">*</span></label>
+                                            <select name="status" class="form-select" required>
+                                                <option th:each="stat : ${statuses}"
+                                                        th:value="${stat}"
+                                                        th:text="${stat}"
+                                                        th:selected="${stat == snack.status}"></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Calories</label>
+                                            <input type="number" name="calories" class="form-control" min="0"
+                                                   th:value="${snack.calories}" placeholder="e.g., 250">
+                                        </div>
+                                        <div class="col-md-6"></div>
+                                        <div class="col-12">
+                                            <label class="form-label">Description</label>
+                                            <textarea name="description" class="form-control" rows="3"
+                                                      th:text="${snack.description}"></textarea>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="form-check">
+                                                <input type="checkbox" name="isGlutenFree" value="true"
+                                                       class="form-check-input" id="isGlutenFree"
+                                                       th:checked="${snack.isGlutenFree}">
+                                                <label class="form-check-label" for="isGlutenFree">
+                                                    <i class="bi bi-check-circle text-success me-1"></i>Gluten Free
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a th:href="@{/admin/products}" class="btn btn-outline-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle me-1"></i>Update Snack
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Coffee Edit Form -->
+                        <form th:if="${productType == 'COFFEE'}"
+                              th:action="@{/admin/products/edit/{id}/coffee(id=${productId})}"
+                              method="post"
+                              enctype="multipart/form-data">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                            <div class="row">
+                                <!-- Image Upload -->
+                                <div class="col-md-3 mb-4">
+                                    <label class="form-label">Product Image</label>
+                                    <div class="image-preview-container">
+                                        <div class="image-preview" onclick="document.getElementById('coffeeImage').click()">
+                                            <div class="placeholder" id="coffeeImagePlaceholder"
+                                                 th:style="${coffee.imageUrl != null} ? 'display: none;' : ''">
+                                                <i class="bi bi-cloud-upload d-block"></i>
+                                                <small>Click to upload</small>
+                                            </div>
+                                            <img id="coffeeImagePreview"
+                                                 th:src="${coffee.imageUrl}"
+                                                 alt="Preview"
+                                                 th:style="${coffee.imageUrl != null} ? '' : 'display: none;'">
+                                        </div>
+                                        <button type="button"
+                                                class="btn btn-danger btn-remove-image"
+                                                id="coffeeRemoveBtn"
+                                                th:style="${coffee.imageUrl != null} ? '' : 'display: none;'"
+                                                onclick="removeImage('coffeeImagePreview', 'coffeeImagePlaceholder', 'coffeeImage', 'coffeeRemoveBtn')">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                    <input type="file" id="coffeeImage" name="image" accept="image/*"
+                                           class="d-none" onchange="previewImage(this, 'coffeeImagePreview', 'coffeeImagePlaceholder', 'coffeeRemoveBtn')">
+                                    <small class="text-muted d-block mt-2">Max 5MB (JPG, PNG, GIF)</small>
+                                </div>
+
+                                <!-- Form Fields -->
+                                <div class="col-md-9">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Name <span class="text-danger">*</span></label>
+                                            <input type="text" name="name" class="form-control" th:value="${coffee.name}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Coffee Type <span class="text-danger">*</span></label>
+                                            <select name="coffeeType" class="form-select" required>
+                                                <option value="">Select Type</option>
+                                                <option th:each="type : ${coffeeTypes}"
+                                                        th:value="${type}"
+                                                        th:text="${type}"
+                                                        th:selected="${type == coffee.coffeeType}"></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Base Price (Rp) <span class="text-danger">*</span></label>
+                                            <input type="number" name="basePrice" class="form-control" min="0" step="1000"
+                                                   th:value="${coffee.basePrice}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Status <span class="text-danger">*</span></label>
+                                            <select name="status" class="form-select" required>
+                                                <option th:each="stat : ${statuses}"
+                                                        th:value="${stat}"
+                                                        th:text="${stat}"
+                                                        th:selected="${stat == coffee.status}"></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Size</label>
+                                            <select name="size" class="form-select">
+                                                <option th:each="size : ${sizes}"
+                                                        th:value="${size}"
+                                                        th:text="${size}"
+                                                        th:selected="${size == coffee.size}"></option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Espresso Shots</label>
+                                            <input type="number" name="espressoShots" class="form-control" min="1" max="5"
+                                                   th:value="${coffee.espressoShots}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Temperature</label>
+                                            <select name="isHot" class="form-select">
+                                                <option value="true" th:selected="${coffee.isHot}">Hot</option>
+                                                <option value="false" th:selected="${!coffee.isHot}">Iced</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">Description</label>
+                                            <textarea name="description" class="form-control" rows="3"
+                                                      th:text="${coffee.description}"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a th:href="@{/admin/products}" class="btn btn-outline-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle me-1"></i>Update Coffee
+                                </button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function previewImage(input, previewId, placeholderId, removeBtnId) {
+        const preview = document.getElementById(previewId);
+        const placeholder = document.getElementById(placeholderId);
+        const removeBtn = document.getElementById(removeBtnId);
+
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+
+            // Validate file size (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                input.value = '';
+                return;
+            }
+
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Only JPG, PNG, GIF, and WebP images are allowed');
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+                removeBtn.style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function removeImage(previewId, placeholderId, inputId, removeBtnId) {
+        const preview = document.getElementById(previewId);
+        const placeholder = document.getElementById(placeholderId);
+        const input = document.getElementById(inputId);
+        const removeBtn = document.getElementById(removeBtnId);
+
+        preview.src = '';
+        preview.style.display = 'none';
+        placeholder.style.display = 'block';
+        removeBtn.style.display = 'none';
+        input.value = '';
+    }
+</script>
+</body>
+</html>
+

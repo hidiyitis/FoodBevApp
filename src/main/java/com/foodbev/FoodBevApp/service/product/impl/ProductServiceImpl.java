@@ -47,6 +47,7 @@ public class ProductServiceImpl implements ProductService {
     private static final String SNACK_FOLDER = "products/snack";
     private static final String COFFEE_FOLDER = "products/coffee";
 
+    // ======================== CREATE ========================
     @Override
     public FoodResponse createFood(FoodRequest request, MultipartFile image) {
         log.info("Creating food product with name: {}", request.getName());
@@ -131,33 +132,92 @@ public class ProductServiceImpl implements ProductService {
         return mapToCoffeeResponse(savedCoffee);
     }
 
+    // ======================== UPDATE ========================
     @Override
-    public String updateProductImage(Long productId, MultipartFile image) {
-        log.info("Updating image for product ID: {}", productId);
+    public FoodResponse updateFood(Long id, FoodRequest request, MultipartFile image) {
+        log.info("Updating food product with ID: {}", id);
 
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new EntityNotFoundException("Product not found with ID: " + productId));
+        Food food = foodRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Food not found with ID: " + id));
 
-        if (product.getImageUrl() != null) {
-            fileStorageService.deleteFile(product.getImageUrl());
+        food.setName(request.getName());
+        food.setDescription(request.getDescription());
+        food.setBasePrice(request.getBasePrice());
+        food.setStatus(request.getStatus());
+        food.setFoodType(request.getFoodType());
+        food.setCuisineType(request.getCuisineType());
+        food.setPreparationTime(request.getPreparationTime());
+        food.setIsVegetarian(request.getIsVegetarian());
+
+        // Image handling langsung di sini
+        if (image != null && !image.isEmpty()) {
+            if (food.getImageUrl() != null) {
+                fileStorageService.deleteFile(food.getImageUrl());
+            }
+            String imageUrl = fileStorageService.uploadFile(image, FOOD_FOLDER);
+            food.setImageUrl(imageUrl);
         }
 
-        String folder = determineFolder(product);
-        String imageUrl = fileStorageService.uploadFile(image, folder);
-        product.setImageUrl(imageUrl);
-        productRepository.save(product);
-
-        log.info("Image updated successfully for product ID: {}", productId);
-        return imageUrl;
+        Food savedFood = foodRepository.save(food);
+        return mapToFoodResponse(savedFood);
     }
 
-    private String determineFolder(Product product) {
-        if (product instanceof Coffee) return COFFEE_FOLDER;
-        if (product instanceof Food) return FOOD_FOLDER;
-        if (product instanceof Snack) return SNACK_FOLDER;
-        return "products/other";
+    @Override
+    public SnackResponse updateSnack(Long id, SnackRequest request, MultipartFile image) {
+        log.info("Updating snack product with ID: {}", id);
+
+        Snack snack = snackRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Snack not found with ID: " + id));
+
+        snack.setName(request.getName());
+        snack.setDescription(request.getDescription());
+        snack.setBasePrice(request.getBasePrice());
+        snack.setStatus(request.getStatus());
+        snack.setSnackType(request.getSnackType());
+        snack.setCalories(request.getCalories());
+        snack.setIsGlutenFree(request.getIsGlutenFree());
+
+        if (image != null && !image.isEmpty()) {
+            if (snack.getImageUrl() != null) {
+                fileStorageService.deleteFile(snack.getImageUrl());
+            }
+            String imageUrl = fileStorageService.uploadFile(image, SNACK_FOLDER);
+            snack.setImageUrl(imageUrl);
+        }
+
+        Snack savedSnack = snackRepository.save(snack);
+        return mapToSnackResponse(savedSnack);
     }
 
+    @Override
+    public CoffeeResponse updateCoffee(Long id, CoffeeRequest request, MultipartFile image) {
+        log.info("Updating coffee product with ID: {}", id);
+
+        Coffee coffee = coffeeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Coffee not found with ID: " + id));
+
+        coffee.setName(request.getName());
+        coffee.setDescription(request.getDescription());
+        coffee.setBasePrice(request.getBasePrice());
+        coffee.setStatus(request.getStatus());
+        coffee.setCoffeeType(request.getCoffeeType());
+        coffee.setSize(request.getSize());
+        coffee.setIsHot(request.getIsHot());
+        coffee.setEspressoShots(request.getEspressoShots());
+
+        if (image != null && !image.isEmpty()) {
+            if (coffee.getImageUrl() != null) {
+                fileStorageService.deleteFile(coffee.getImageUrl());
+            }
+            String imageUrl = fileStorageService.uploadFile(image, COFFEE_FOLDER);
+            coffee.setImageUrl(imageUrl);
+        }
+
+        Coffee savedCoffee = coffeeRepository.save(coffee);
+        return mapToCoffeeResponse(savedCoffee);
+    }
+
+    // ======================== READ ========================
     @Override
     @Transactional(readOnly = true)
     public Page<ProductListResponse> getAllProducts(ProductCategory category, ProductStatus status, Pageable pageable) {
@@ -184,7 +244,23 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
     }
 
-    // ==================== MAPPERS ====================
+    // ======================== DELETE ========================
+    @Override
+    public void deleteProduct(Long id) {
+        log.info("Deleting product with ID: {}", id);
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with ID: " + id));
+
+        // Soft delete: set status to DISCONTINUED instead of actually deleting
+        // This preserves order history that references this product
+        product.setStatus(ProductStatus.DISCONTINUED);
+        productRepository.save(product);
+
+        log.info("Product soft-deleted (set to DISCONTINUED) with ID: {}", id);
+    }
+
+    // ==================== MAPPER HELPERS ====================
     private FoodResponse mapToFoodResponse(Food food) {
         FoodResponse response = new FoodResponse();
         response.setId(food.getId());
@@ -263,6 +339,7 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
+    // ==================== FORMATTING HELPERS ====================
     private String formatCategoryDisplay(Product product) {
         String baseCategory = product.getCategory().toString();
         if (product instanceof Coffee coffee) {
@@ -276,7 +353,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private String formatStatusBadge(ProductStatus status) {
-        return status == ProductStatus.IN_STOCK ? "In Stock" : "Out of Stock";
+        return switch (status) {
+            case IN_STOCK -> "In Stock";
+            case OUT_OF_STOCK -> "Out of Stock";
+            case DISCONTINUED -> "Discontinued";
+        };
     }
 
     private String formatPrice(java.math.BigDecimal price) {

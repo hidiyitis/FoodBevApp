@@ -22,7 +22,7 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
-    @Value("${app.upload.base-url:http://localhost:8080/uploads}")
+    @Value("${app.upload.base-url:http://localhost:8081/uploads}")
     private String baseUrl;
 
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "gif", "webp");

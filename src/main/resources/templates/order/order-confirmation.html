@@ -190,17 +190,48 @@
             <div class="card order-card border-0 mb-4">
                 <div class="card-body text-center">
                     <div class="mb-2">
-                        <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                        <!-- Status CONFIRMED/SETTLEMENT - Hijau -->
+                        <span th:if="${order.status.name() == 'CONFIRMED' || order.status.name() == 'COMPLETED'}" 
+                              class="badge bg-success fs-6 px-3 py-2">
+                            <i class="bi bi-check-circle me-1"></i>
+                            PEMBAYARAN BERHASIL
+                        </span>
+                        <!-- Status PENDING - Kuning -->
+                        <span th:if="${order.status.name() == 'PENDING'}" 
+                              class="badge bg-warning text-dark fs-6 px-3 py-2">
                             <i class="bi bi-clock-history me-1"></i>
-                            <span th:text="${order.status}">PENDING</span>
+                            PENDING
+                        </span>
+                        <!-- Status PREPARING - Biru -->
+                        <span th:if="${order.status.name() == 'PREPARING'}" 
+                              class="badge bg-info text-white fs-6 px-3 py-2">
+                            <i class="bi bi-fire me-1"></i>
+                            SEDANG DISIAPKAN
+                        </span>
+                        <!-- Status READY - Hijau muda -->
+                        <span th:if="${order.status.name() == 'READY'}" 
+                              class="badge bg-success fs-6 px-3 py-2">
+                            <i class="bi bi-bag-check me-1"></i>
+                            SIAP DIAMBIL
+                        </span>
+                        <!-- Status CANCELLED - Merah -->
+                        <span th:if="${order.status.name() == 'CANCELLED'}" 
+                              class="badge bg-danger fs-6 px-3 py-2">
+                            <i class="bi bi-x-circle me-1"></i>
+                            DIBATALKAN
                         </span>
                     </div>
-                    <p class="text-muted mb-0">Your order is being processed</p>
+                    <p class="text-muted mb-0" th:if="${order.status.name() == 'PENDING'}">Menunggu pembayaran</p>
+                    <p class="text-muted mb-0" th:if="${order.status.name() == 'CONFIRMED'}">Pembayaran berhasil, pesanan sedang diproses</p>
+                    <p class="text-muted mb-0" th:if="${order.status.name() == 'PREPARING'}">Pesanan Anda sedang disiapkan</p>
+                    <p class="text-muted mb-0" th:if="${order.status.name() == 'READY'}">Pesanan Anda siap untuk diambil</p>
+                    <p class="text-muted mb-0" th:if="${order.status.name() == 'COMPLETED'}">Pesanan selesai</p>
+                    <p class="text-muted mb-0" th:if="${order.status.name() == 'CANCELLED'}">Pesanan dibatalkan</p>
                 </div>
             </div>
 
-            <!-- ACTION BUTTONS -->
-            <div class="d-flex flex-column gap-2 mb-3">
+            <!-- ACTION BUTTONS - Show Pay Now only if PENDING -->
+            <div th:if="${order.status.name() == 'PENDING'}" class="d-flex flex-column gap-2 mb-3">
                 <a th:href="@{'/user/order/payment/' + ${order.id}}" class="btn btn-success btn-lg">
                     <i class="bi bi-credit-card me-1"></i> Pay Now
                 </a>

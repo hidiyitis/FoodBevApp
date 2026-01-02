@@ -120,25 +120,6 @@ public class OrderController {
         return "order/order-confirmation";
     }
 
-    // ================= PAYMENT PAGE =================
-    @GetMapping("/payment/{orderId}")
-    public String paymentPage(
-            @PathVariable Long orderId, 
-            Model model, 
-            Principal principal) {
-
-        User user = userService.findByEmail(principal.getName());
-        Order order = orderService.getOrderById(orderId, user);
-
-        if (order == null) {
-            return "redirect:/user/cart";
-        }
-
-        model.addAttribute("order", order);
-        
-        return "order/payment";
-    }
-
     // ================= ORDER HISTORY =================
     @GetMapping("/history")
     public String orderHistory(Model model, Principal principal) {

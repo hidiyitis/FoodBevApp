@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" th:href="@{/css/style.css}">
 
+    <!-- Midtrans Snap JS -->
+    <script th:if="${isProduction}" src="https://app.midtrans.com/snap/snap.js" th:attr="data-client-key=${clientKey}"></script>
+    <script th:unless="${isProduction}" src="https://app.sandbox.midtrans.com/snap/snap.js" th:attr="data-client-key=${clientKey}"></script>
+
     <style>
         :root {
             --primary: #8B7355;
@@ -21,17 +25,58 @@
             box-shadow: var(--shadow-soft);
         }
 
-        .coming-soon-box {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            border-radius: 12px;
-            padding: 3rem;
-            text-align: center;
+        .payment-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
         }
 
-        .coming-soon-icon {
-            font-size: 5rem;
-            color: var(--primary);
-            margin-bottom: 1.5rem;
+        .payment-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 115, 85, 0.3);
+        }
+
+        .payment-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .loading-spinner {
+            display: none;
+        }
+
+        .payment-btn.loading .loading-spinner {
+            display: inline-block;
+        }
+
+        .payment-btn.loading .btn-text {
+            display: none;
+        }
+
+        .order-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .payment-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .secure-badge {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
         }
     </style>
 </head>
@@ -70,36 +115,88 @@
                         <span class="fw-semibold" th:text="${order.customerName}">John Doe</span>
                     </div>
 
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Phone</span>
+                        <span th:text="${order.customerPhone}">081234567890</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Order Type</span>
+                        <span class="badge bg-primary" th:text="${order.orderType}">DINE_IN</span>
+                    </div>
+
+                    <hr>
+
+                    <!-- Order Items -->
+                    <h6 class="fw-semibold mb-3">Items</h6>
+                    <div class="order-items mb-3">
+                        <div th:each="item : ${order.orderItems}" class="order-item d-flex justify-content-between">
+                            <div>
+                                <span th:text="${item.product.name}">Product Name</span>
+                                <span class="text-muted"> x<span th:text="${item.quantity}">1</span></span>
+                            </div>
+                            <span>Rp <span th:text="${#numbers.formatInteger(item.subtotal, 0, 'POINT')}">0</span></span>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Subtotal</span>
+                        <span>Rp <span th:text="${#numbers.formatInteger(order.subtotal, 0, 'POINT')}">0</span></span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Tax (10%)</span>
+                        <span>Rp <span th:text="${#numbers.formatInteger(order.tax, 0, 'POINT')}">0</span></span>
+                    </div>
+
                     <hr>
 
                     <div class="d-flex justify-content-between fs-5 fw-bold">
                         <span>Total Amount</span>
                         <span class="text-primary">
-                            Rp <span th:text="${#numbers.formatInteger(order.totalAmount,0,'POINT')}">0</span>
+                            Rp <span th:text="${#numbers.formatInteger(order.totalAmount, 0, 'POINT')}">0</span>
                         </span>
                     </div>
                 </div>
             </div>
 
-            <!-- COMING SOON MESSAGE -->
-            <div class="coming-soon-box">
-                <div class="coming-soon-icon">
-                    <i class="bi bi-tools"></i>
+            <!-- PAYMENT INFO -->
+            <div class="payment-info mb-4">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-shield-check text-success me-2 fs-5"></i>
+                    <span class="fw-semibold">Secure Payment</span>
                 </div>
-                <h2 class="fw-bold mb-3">Payment Page Coming Soon</h2>
-                <p class="text-muted mb-4">
-                    We're working on integrating payment methods for your convenience. 
-                    <br>This feature will be available soon!
+                <p class="text-muted small mb-0">
+                    Payment is processed securely through Midtrans. We support various payment methods including:
                 </p>
-                <p class="text-muted small">
-                    For now, please proceed with payment at the counter.
-                </p>
+                <div class="mt-2">
+                    <span class="badge bg-light text-dark me-1">Bank Transfer</span>
+                    <span class="badge bg-light text-dark me-1">GoPay</span>
+                    <span class="badge bg-light text-dark me-1">QRIS</span>
+                    <span class="badge bg-light text-dark me-1">Credit Card</span>
+                    <span class="badge bg-light text-dark me-1">And more...</span>
+                </div>
+            </div>
+
+            <!-- PAY BUTTON -->
+            <div class="text-center mb-4">
+                <button id="pay-button" class="btn btn-primary payment-btn text-white w-100">
+                    <span class="btn-text">
+                        <i class="bi bi-lock-fill me-2"></i>Pay Now - Rp <span th:text="${#numbers.formatInteger(order.totalAmount, 0, 'POINT')}">0</span>
+                    </span>
+                    <span class="loading-spinner">
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        Processing...
+                    </span>
+                </button>
             </div>
 
             <!-- BACK BUTTON -->
-            <div class="text-center mt-4">
-                <a th:href="@{'/user/order/confirmation/' + ${order.id}}" class="btn btn-outline-primary">
-                    <i class="bi bi-arrow-left me-1"></i> Back to Order Details
+            <div class="text-center">
+                <a th:href="@{'/user/order/confirmation/' + ${order.id}}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Cancel & Go Back
                 </a>
             </div>
 
@@ -107,6 +204,40 @@
     </div>
 
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const payButton = document.getElementById('pay-button');
+        const snapToken = '[[${payment.snapToken}]]';
+
+        payButton.addEventListener('click', function() {
+            payButton.classList.add('loading');
+            payButton.disabled = true;
+
+            window.snap.pay(snapToken, {
+                onSuccess: function(result) {
+                    console.log('Payment success:', result);
+                    window.location.href = '/payment/finish?order_id=' + result.order_id + 
+                                          '&status_code=' + result.status_code + 
+                                          '&transaction_status=' + result.transaction_status;
+                },
+                onPending: function(result) {
+                    console.log('Payment pending:', result);
+                    window.location.href = '/payment/pending?order_id=' + result.order_id;
+                },
+                onError: function(result) {
+                    console.log('Payment error:', result);
+                    window.location.href = '/payment/error?order_id=' + result.order_id;
+                },
+                onClose: function() {
+                    console.log('Payment popup closed');
+                    payButton.classList.remove('loading');
+                    payButton.disabled = false;
+                }
+            });
+        });
+    });
+</script>
 
 </body>
 </html>

@@ -23,6 +23,8 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/uploads/**").permitAll()
                         .requestMatchers("/", "/home").permitAll()
                         .requestMatchers("/auth/login", "/auth/register").anonymous()
+                        .requestMatchers("/payment/notification").permitAll()
+                        .requestMatchers("/payment/finish", "/payment/pending", "/payment/error").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/user/cart/**").authenticated()
@@ -44,7 +46,7 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/user/cart/**")
+                        .ignoringRequestMatchers("/user/cart/**", "/payment/notification")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 );
         return http.build();

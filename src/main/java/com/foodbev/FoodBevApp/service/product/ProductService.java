@@ -27,6 +27,7 @@ public interface ProductService {
 
     // Read
     Page<ProductListResponse> getAllProducts(ProductCategory category, ProductStatus status, Pageable pageable);
+    Page<ProductListResponse> searchProducts(String keyword, ProductCategory category, ProductStatus status, Pageable pageable);
     Product findById(Long id);
 
     // Delete

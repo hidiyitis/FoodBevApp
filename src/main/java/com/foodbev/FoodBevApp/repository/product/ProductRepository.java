@@ -32,6 +32,31 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByNameContainingIgnoreCase(String name);
 
+    // Search methods with pagination
+    @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+    Page<Product> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE (LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND p.status = :status")
+    Page<Product> searchByKeywordAndStatus(@Param("keyword") String keyword,
+                                            @Param("status") ProductStatus status,
+                                            Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE (LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND p.category = :category")
+    Page<Product> searchByKeywordAndCategory(@Param("keyword") String keyword,
+                                              @Param("category") ProductCategory category,
+                                              Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE (LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+           "OR LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+           "AND p.category = :category AND p.status = :status")
+    Page<Product> searchByKeywordAndCategoryAndStatus(@Param("keyword") String keyword,
+                                                       @Param("category") ProductCategory category,
+                                                       @Param("status") ProductStatus status,
+                                                       Pageable pageable);
+
     @Modifying
     @Query("UPDATE Product p SET p.status = :status, p.updatedAt = CURRENT_TIMESTAMP WHERE p.id = :id")
     int updateStatus(@Param("id") Long id, @Param("status") ProductStatus status);

@@ -29,6 +29,7 @@ public class UserProductController {
     @GetMapping("/dashboard")
     public String userDashboard(
             @RequestParam(required = false) ProductCategory category,
+            @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size,
             @RequestParam(defaultValue = "name") String sortBy,
@@ -46,11 +47,24 @@ public class UserProductController {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         // Hanya tampilkan produk yang IN_STOCK untuk user
-        Page<ProductListResponse> productPage = productService.getAllProducts(
-                category,
-                ProductStatus.IN_STOCK,
-                pageable
-        );
+        Page<ProductListResponse> productPage;
+
+        if (search != null && !search.trim().isEmpty()) {
+            // Search with keyword
+            productPage = productService.searchProducts(
+                    search.trim(),
+                    category,
+                    ProductStatus.IN_STOCK,
+                    pageable
+            );
+        } else {
+            // Normal listing
+            productPage = productService.getAllProducts(
+                    category,
+                    ProductStatus.IN_STOCK,
+                    pageable
+            );
+        }
 
         // Product data
         model.addAttribute("products", productPage.getContent());
@@ -63,8 +77,11 @@ public class UserProductController {
         model.addAttribute("categories", ProductCategory.values());
         model.addAttribute("selectedCategory", category);
 
-        log.info("User {} accessing dashboard - Page: {}, Category: {}",
-                auth.getName(), page, category);
+        // Search keyword
+        model.addAttribute("searchKeyword", search);
+
+        log.info("User {} accessing dashboard - Page: {}, Category: {}, Search: {}",
+                auth.getName(), page, category, search);
 
         return "user/dashboard";
     }

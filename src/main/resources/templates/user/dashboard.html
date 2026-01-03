@@ -199,21 +199,37 @@
     <!-- Search & Filter Section -->
     <div class="row mb-5 gy-3">
         <div class="col-md-5">
-            <div class="input-group shadow-sm rounded-pill overflow-hidden">
-        <span class="input-group-text bg-white border-0 ps-4">
-          <i class="bi bi-search text-muted"></i>
-        </span>
-                <input type="text" class="form-control border-0 pe-4 rounded-end-pill"
-                       placeholder="Search food or drinks..." id="searchInput">
+            <form th:action="@{/user/dashboard}" method="get" class="search-form">
+                <input type="hidden" name="category" th:value="${selectedCategory}" th:if="${selectedCategory != null}">
+                <div class="input-group shadow-sm rounded-pill overflow-hidden">
+                    <span class="input-group-text bg-white border-0 ps-4">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control border-0" name="search"
+                           th:value="${searchKeyword}"
+                           placeholder="Search food or drinks..." id="searchInput">
+                    <button type="submit" class="btn btn-primary rounded-end-pill px-4">
+                        Search
+                    </button>
+                </div>
+            </form>
+            <!-- Show clear search button if search is active -->
+            <div th:if="${searchKeyword != null and !searchKeyword.isEmpty()}" class="mt-2">
+                <small class="text-muted">
+                    Showing results for "<span th:text="${searchKeyword}">keyword</span>"
+                    <a th:href="@{/user/dashboard(category=${selectedCategory})}" class="text-danger ms-2">
+                        <i class="bi bi-x-circle"></i> Clear search
+                    </a>
+                </small>
             </div>
         </div>
         <div class="col-md-7">
             <div class="d-flex flex-wrap gap-2 fw-semibold" id="categoryFilter">
-                <a th:href="@{/user/dashboard}"
+                <a th:href="@{/user/dashboard(search=${searchKeyword})}"
                    class="btn btn-outline-primary category-btn rounded-pill"
                    th:classappend="${selectedCategory == null} ? ' active' : ''">All Items</a>
                 <a th:each="cat : ${categories}"
-                   th:href="@{/user/dashboard(category=${cat})}"
+                   th:href="@{/user/dashboard(category=${cat}, search=${searchKeyword})}"
                    class="btn btn-outline-primary category-btn rounded-pill"
                    th:classappend="${selectedCategory != null && selectedCategory.name() == cat.name()} ? ' active' : ''">
           <span th:switch="${cat.name()}">
@@ -233,8 +249,18 @@
         <div th:if="${#lists.isEmpty(products)}" class="col-12">
             <div class="empty-products">
                 <i class="bi bi-basket display-1 text-muted mb-3"></i>
-                <h5 class="text-muted">No products found</h5>
-                <p class="text-muted">Try changing your filters or check back later.</p>
+                <h5 class="text-muted" th:if="${searchKeyword != null and !searchKeyword.isEmpty()}">
+                    No results found for "<span th:text="${searchKeyword}">keyword</span>"
+                </h5>
+                <h5 class="text-muted" th:unless="${searchKeyword != null and !searchKeyword.isEmpty()}">
+                    No products found
+                </h5>
+                <p class="text-muted" th:if="${searchKeyword != null and !searchKeyword.isEmpty()}">
+                    Try different keywords or check your spelling.
+                </p>
+                <p class="text-muted" th:unless="${searchKeyword != null and !searchKeyword.isEmpty()}">
+                    Try changing your filters or check back later.
+                </p>
                 <a th:href="@{/user/dashboard}" class="btn btn-primary">View All Products</a>
             </div>
         </div>
@@ -279,7 +305,7 @@
                     <!-- Previous Button -->
                     <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/user/dashboard(page=${currentPage - 1}, category=${selectedCategory})}"
+                           th:href="@{/user/dashboard(page=${currentPage - 1}, category=${selectedCategory}, search=${searchKeyword})}"
                            th:if="${currentPage > 0}">
                             <i class="bi bi-chevron-left"></i> Previous
                         </a>
@@ -294,7 +320,7 @@
 
                         <!-- First page if not in range -->
                         <li class="page-item" th:if="${startPage > 0}">
-                            <a class="page-link" th:href="@{/user/dashboard(page=0, category=${selectedCategory})}">1</a>
+                            <a class="page-link" th:href="@{/user/dashboard(page=0, category=${selectedCategory}, search=${searchKeyword})}">1</a>
                         </li>
                         <li class="page-item disabled" th:if="${startPage > 1}">
                             <span class="page-link">...</span>
@@ -305,7 +331,7 @@
                             class="page-item"
                             th:classappend="${pageNum == currentPage} ? 'active'">
                             <a class="page-link"
-                               th:href="@{/user/dashboard(page=${pageNum}, category=${selectedCategory})}"
+                               th:href="@{/user/dashboard(page=${pageNum}, category=${selectedCategory}, search=${searchKeyword})}"
                                th:text="${pageNum + 1}">1</a>
                         </li>
 
@@ -315,7 +341,7 @@
                         </li>
                         <li class="page-item" th:if="${endPage < totalPages - 1}">
                             <a class="page-link"
-                               th:href="@{/user/dashboard(page=${totalPages - 1}, category=${selectedCategory})}"
+                               th:href="@{/user/dashboard(page=${totalPages - 1}, category=${selectedCategory}, search=${searchKeyword})}"
                                th:text="${totalPages}">Last</a>
                         </li>
                     </th:block>
@@ -323,7 +349,7 @@
                     <!-- Next Button -->
                     <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/user/dashboard(page=${currentPage + 1}, category=${selectedCategory})}"
+                           th:href="@{/user/dashboard(page=${currentPage + 1}, category=${selectedCategory}, search=${searchKeyword})}"
                            th:if="${currentPage < totalPages - 1}">
                             Next <i class="bi bi-chevron-right"></i>
                         </a>

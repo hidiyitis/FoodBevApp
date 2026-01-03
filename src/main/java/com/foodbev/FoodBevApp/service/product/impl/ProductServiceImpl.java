@@ -239,6 +239,33 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<ProductListResponse> searchProducts(String keyword, ProductCategory category, ProductStatus status, Pageable pageable) {
+        log.info("Searching products - Keyword: {}, Category: {}, Status: {}", keyword, category, status);
+
+        Page<Product> productPage;
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            // If no keyword, fallback to getAllProducts
+            return getAllProducts(category, status, pageable);
+        }
+
+        String searchKeyword = keyword.trim();
+
+        if (category != null && status != null) {
+            productPage = productRepository.searchByKeywordAndCategoryAndStatus(searchKeyword, category, status, pageable);
+        } else if (category != null) {
+            productPage = productRepository.searchByKeywordAndCategory(searchKeyword, category, pageable);
+        } else if (status != null) {
+            productPage = productRepository.searchByKeywordAndStatus(searchKeyword, status, pageable);
+        } else {
+            productPage = productRepository.searchByKeyword(searchKeyword, pageable);
+        }
+
+        return productPage.map(this::mapToProductListResponse);
+    }
+
+    @Override
     public Product findById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));

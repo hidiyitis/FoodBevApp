@@ -81,20 +81,43 @@ public class PaymentController {
     }
 
     /**
+     * Health check for notification endpoint (GET for testing)
+     */
+    @GetMapping("/payment/notification")
+    @ResponseBody
+    public ResponseEntity<String> notificationHealthCheck() {
+        log.info("Notification endpoint health check");
+        return ResponseEntity.ok("Notification endpoint is active");
+    }
+
+    /**
      * Handle Midtrans notification webhook
      */
     @PostMapping("/payment/notification")
     @ResponseBody
-    public ResponseEntity<String> handleNotification(@RequestBody MidtransNotificationRequest notification) {
-        log.info("Received Midtrans notification: orderId={}, status={}", 
-                notification.getOrderId(), notification.getTransactionStatus());
+    public ResponseEntity<String> handleNotification(@RequestBody String rawPayload) {
+        log.info("Received Midtrans notification raw: {}", rawPayload);
 
         try {
+            // Parse JSON manually to handle test notifications
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            MidtransNotificationRequest notification = mapper.readValue(rawPayload, MidtransNotificationRequest.class);
+            
+            // Check if this is a test notification (no order_id or test order_id)
+            if (notification.getOrderId() == null || notification.getOrderId().isEmpty()) {
+                log.info("Test notification received - responding OK");
+                return ResponseEntity.ok("OK");
+            }
+            
+            log.info("Processing notification: orderId={}, status={}", 
+                    notification.getOrderId(), notification.getTransactionStatus());
+            
             paymentService.handleNotification(notification);
             return ResponseEntity.ok("OK");
         } catch (Exception e) {
-            log.error("Failed to handle notification", e);
-            return ResponseEntity.badRequest().body("Failed to process notification");
+            log.error("Failed to handle notification: {}", e.getMessage(), e);
+            // Return OK to prevent Midtrans from retrying for invalid data
+            return ResponseEntity.ok("OK");
         }
     }
 

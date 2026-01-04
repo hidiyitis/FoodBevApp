@@ -38,6 +38,18 @@ public class OrderItem {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column(name = "unit_price")
+    private BigDecimal unitPrice;
+
+    @Column(name = "price")
+    private BigDecimal price;
+
+    @Column(name = "size")
+    private String size;
+
+    @Column(name = "temperature")
+    private String temperature;
+
     @Column(name = "price_at_order", nullable = false)
     private BigDecimal priceAtOrder;
 

@@ -134,7 +134,7 @@
                     <a class="nav-link active" th:href="@{/user/dashboard}">Dashboard</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:href="@{/user/orders}">My Orders</a>
+                    <a class="nav-link" th:href="@{/user/order/history}">My Orders</a>
                 </li>
             </ul>
 
@@ -154,6 +154,7 @@
                     </a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" th:href="@{/user/profile}"><i class="bi bi-person me-2"></i>Profile</a></li>
+                        <li><a class="dropdown-item" th:href="@{/user/order/history}"><i class="bi bi-clock-history me-2"></i>Order History</a></li>
                         <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>

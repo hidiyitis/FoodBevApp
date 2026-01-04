@@ -76,9 +76,20 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setProduct(cartItem.getProduct());
             orderItem.setProductName(cartItem.getProduct().getName());
             orderItem.setQuantity(cartItem.getQuantity());
-            orderItem.setPriceAtOrder(cartItem.getProduct().calculatePrice());
-            orderItem.setSubtotal(cartItem.getProduct().calculatePrice()
-                .multiply(BigDecimal.valueOf(cartItem.getQuantity())));
+            
+            BigDecimal calculatedPrice = cartItem.getProduct().calculatePrice();
+            orderItem.setUnitPrice(calculatedPrice);
+            orderItem.setPrice(calculatedPrice.multiply(BigDecimal.valueOf(cartItem.getQuantity())));
+            orderItem.setPriceAtOrder(calculatedPrice);
+            orderItem.setSubtotal(calculatedPrice.multiply(BigDecimal.valueOf(cartItem.getQuantity())));
+            
+            // Set size and temperature if product is Coffee
+            if (cartItem.getProduct() instanceof com.foodbev.FoodBevApp.entity.product.Coffee) {
+                com.foodbev.FoodBevApp.entity.product.Coffee coffee = 
+                    (com.foodbev.FoodBevApp.entity.product.Coffee) cartItem.getProduct();
+                orderItem.setSize(coffee.getSize() != null ? coffee.getSize().toString() : null);
+                orderItem.setTemperature(coffee.getIsHot() ? "HOT" : "ICED");
+            }
             
             order.getOrderItems().add(orderItem);
         }

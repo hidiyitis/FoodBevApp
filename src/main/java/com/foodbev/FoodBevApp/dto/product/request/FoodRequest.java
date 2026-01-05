@@ -21,7 +21,6 @@ public class FoodRequest extends ProductBaseRequest {
     @Max(value = 120, message = "Preparation time cannot exceed 120 minutes")
     private Integer preparationTime;
 
-    @NotNull(message = "Vegetarian status is required")
     private Boolean isVegetarian;
 }
 

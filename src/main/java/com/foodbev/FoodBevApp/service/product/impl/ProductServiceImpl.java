@@ -147,7 +147,7 @@ public class ProductServiceImpl implements ProductService {
         food.setFoodType(request.getFoodType());
         food.setCuisineType(request.getCuisineType());
         food.setPreparationTime(request.getPreparationTime());
-        food.setIsVegetarian(request.getIsVegetarian());
+        food.setIsVegetarian(request.getIsVegetarian() != null ? request.getIsVegetarian() : false);
 
         // Image handling langsung di sini
         if (image != null && !image.isEmpty()) {

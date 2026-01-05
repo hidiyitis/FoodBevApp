@@ -34,6 +34,13 @@ public class AdminProductController {
     private final ProductService productService;
 
     // ==================== GET ====================
+
+    // 1. Request Parameter
+    // 2. Logging
+    // 3. Setup Sort dan Pageable
+    // 4. Panggil ProductService untuk mendapatkan data produk dengan pagination dan filter (category, status)
+    // 5. Tambahkan atribut ke Model untuk ditampilkan di view
+    // 6. Return view
     @GetMapping
     public String getProductsPage(
             @RequestParam(required = false) ProductCategory category,
@@ -75,6 +82,11 @@ public class AdminProductController {
     }
 
     // ==================== ADD ====================
+
+    // 1. Nampilin form add (GET) dengan dropdown
+    // 2. Nerima data dari form (POST) dengan validasi
+    // 3. Eksekusi service untuk simpan data
+    // 4. Handle error dan sukses dengan RedirectAttributes
     @GetMapping("/add")
     public String showAddProductPage(Model model) {
         log.info("Accessing add product page");
@@ -164,6 +176,15 @@ public class AdminProductController {
     }
 
     // ==================== EDIT ====================
+
+    // 1. Nampilin form edit (GET) dengan data existing
+    // 2. Cari data existing berdasarkan ID
+    // 3. Pakai polymorphism untuk ngecek tipe produk dan add attribute sesuai tipe data
+    // 4. addFormAttributes untuk dropdown
+    // 5. Nerima data dari form (POST) dengan validasi
+    // 6. Eksekusi service untuk update data
+    // 7. Handle error Try-Catch error spesifik (Entity Not Found) dan umum (Exception)
+
     @GetMapping("/edit/{id}")
     public String showEditProductPage(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
         log.info("Accessing edit product page for ID: {}", id);
@@ -289,6 +310,9 @@ public class AdminProductController {
     }
 
     // ==================== DELETE ====================
+    // 1. Nerima ID dari path variable
+    // 2. Eksekusi service untuk delete data
+    // 3. Handle error Try-Catch error spesifik (Entity Not Found) dan umum (Exception)
     @PostMapping("/delete/{id}")
     public String deleteProduct(
             @PathVariable Long id,

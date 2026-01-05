@@ -82,7 +82,7 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setPrice(calculatedPrice.multiply(BigDecimal.valueOf(cartItem.getQuantity())));
             orderItem.setPriceAtOrder(calculatedPrice);
             orderItem.setSubtotal(calculatedPrice.multiply(BigDecimal.valueOf(cartItem.getQuantity())));
-            
+
             // Set size and temperature if product is Coffee
             if (cartItem.getProduct() instanceof com.foodbev.FoodBevApp.entity.product.Coffee) {
                 com.foodbev.FoodBevApp.entity.product.Coffee coffee = 

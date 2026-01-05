@@ -25,7 +25,6 @@ public class Food extends Product {
     @Column(nullable = false)
     private Integer preparationTime = 15;
 
-    @Column(nullable = false)
     private Boolean isVegetarian = false;
 
     @Override
@@ -39,7 +38,7 @@ public class Food extends Product {
     public BigDecimal calculatePrice() {
         BigDecimal price = getBasePrice();
 
-        if (isVegetarian) {
+        if (Boolean.TRUE.equals(isVegetarian)) {
             price = price.subtract(new BigDecimal("5000"));
         }
 

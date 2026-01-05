@@ -174,7 +174,6 @@ public class AdminProductController {
             model.addAttribute("product", product);
             model.addAttribute("productId", id);
 
-            // Determine product type and add specific attributes
             if (product instanceof Food food) {
                 model.addAttribute("productType", "FOOD");
                 model.addAttribute("food", food);

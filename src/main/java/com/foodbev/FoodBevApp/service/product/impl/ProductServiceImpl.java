@@ -19,6 +19,7 @@ import com.foodbev.FoodBevApp.repository.product.ProductRepository;
 import com.foodbev.FoodBevApp.repository.product.SnackRepository;
 import com.foodbev.FoodBevApp.service.product.ProductService;
 import com.foodbev.FoodBevApp.service.storage.FileStorageService;
+import com.foodbev.FoodBevApp.util.ProductFormatUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +64,6 @@ public class ProductServiceImpl implements ProductService {
         food.setPreparationTime(request.getPreparationTime());
         food.setIsVegetarian(request.getIsVegetarian());
 
-        // Handle image: upload file if provided, otherwise use URL from request
         if (image != null && !image.isEmpty()) {
             String imageUrl = fileStorageService.uploadFile(image, FOOD_FOLDER);
             food.setImageUrl(imageUrl);
@@ -279,8 +279,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with ID: " + id));
 
-        // Soft delete: set status to DISCONTINUED instead of actually deleting
-        // This preserves order history that references this product
+
         product.setStatus(ProductStatus.DISCONTINUED);
         productRepository.save(product);
 
@@ -360,35 +359,9 @@ public class ProductServiceImpl implements ProductService {
                 .category(product.getCategory())
                 .status(product.getStatus())
                 .imageUrl(product.getImageUrl())
-                .categoryDisplay(formatCategoryDisplay(product))
-                .statusBadge(formatStatusBadge(product.getStatus()))
-                .priceFormatted(formatPrice(product.calculatePrice()))
+                .categoryDisplay(ProductFormatUtils.formatCategoryDisplay(product))
+                .statusBadge(ProductFormatUtils.formatStatusBadge(product.getStatus()))
+                .priceFormatted(ProductFormatUtils.formatPrice(product.calculatePrice()))
                 .build();
-    }
-
-    // ==================== FORMATTING HELPERS ====================
-    private String formatCategoryDisplay(Product product) {
-        String baseCategory = product.getCategory().toString();
-        if (product instanceof Coffee coffee) {
-            return String.format("%s (%s - %s)", baseCategory, coffee.getCoffeeType(), coffee.getSize());
-        } else if (product instanceof Food food) {
-            return String.format("%s (%s)", baseCategory, food.getFoodType());
-        } else if (product instanceof Snack snack) {
-            return String.format("%s (%s)", baseCategory, snack.getSnackType());
-        }
-        return baseCategory;
-    }
-
-    private String formatStatusBadge(ProductStatus status) {
-        return switch (status) {
-            case IN_STOCK -> "In Stock";
-            case OUT_OF_STOCK -> "Out of Stock";
-            case DISCONTINUED -> "Discontinued";
-        };
-    }
-
-    private String formatPrice(java.math.BigDecimal price) {
-        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("id", "ID"));
-        return formatter.format(price);
     }
 }

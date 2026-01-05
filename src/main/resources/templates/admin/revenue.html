@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Revenue - FoodBev Admin</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        :root {
+            --primary: #8B7355;
+            --primary-dark: #6B5B3D;
+            --danger: #dc3545;
+            --border-radius: 12px;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .bg-primary {
+            background-color: var(--primary) !important;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            padding: 0.75rem 1rem;
+        }
+
+        .sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .sidebar .nav-link.active {
+            background: white !important;
+            color: var(--primary) !important;
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logout-btn {
+            background: transparent;
+            color: var(--danger) !important;
+            border: 1px solid var(--danger);
+            border-radius: var(--border-radius);
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            transition: var(--transition);
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white !important;
+            border-color: var(--danger);
+        }
+
+        .main-content-bg {
+            background-color: #F5F0E8 !important;
+        }
+
+        .stat-card {
+            border-left: 4px solid var(--primary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-table-shadow {
+            box-shadow: var(--shadow-md);
+            border-radius: var(--border-radius);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                min-height: auto;
+                position: relative !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 sidebar text-white p-0">
+            <div class="d-flex flex-column h-100">
+                <!-- Sidebar Header -->
+                <div class="p-4 border-bottom border-white border-opacity-10">
+                    <a th:href="@{/}" class="text-white text-decoration-none">
+                        <h5 class="mb-0 fw-bold"><i class="bi bi-cup-hot-fill me-2"></i>FoodBev Admin</h5>
+                    </a>
+                </div>
+
+                <!-- Sidebar Navigation -->
+                <nav class="flex-grow-1 p-3">
+                    <ul class="nav nav-pills flex-column">
+                        <li class="nav-item">
+                            <a th:href="@{/admin/dashboard}" class="nav-link mb-2">
+                                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/admin/products}" class="nav-link mb-2">
+                                <i class="bi bi-box-seam me-2"></i>Product Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/admin/users}" class="nav-link mb-2">
+                                <i class="bi bi-people me-2"></i>User Management
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a th:href="@{/admin/orders}" class="nav-link mb-2">
+                                <i class="bi bi-cart me-2"></i>Order View
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- Sidebar Footer -->
+                <div class="sidebar-footer">
+                    <form th:action="@{/auth/logout}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="logout-btn">
+                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 col-lg-10 ms-sm-auto main-content-bg min-vh-100">
+            <!-- Content Header -->
+            <div class="bg-white border-bottom p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <a th:href="@{/admin/dashboard}" class="btn btn-sm btn-outline-primary me-3">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                        <h1 class="h3 fw-bold mb-1 d-inline">Daily Revenue</h1>
+                        <p class="text-muted mb-0">Track your daily revenue performance</p>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="text-muted me-3">Hello, Admin!</span>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-2"></i>Admin
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profile</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><form th:action="@{/auth/logout}" method="post" class="px-2">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                    <button type="submit" class="dropdown-item text-danger p-0 border-0 bg-transparent">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                    </button>
+                                </form></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Table -->
+                <div class="row mt-4 mb-5">
+                    <div class="col-12">
+                        <div class="card border-0 card-table-shadow">
+                            <div class="card-header bg-white border-0 py-3">
+                                <h5 class="card-title mb-0 fw-semibold">Daily Revenue Report</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th class="text-center">Total Products Sold</th>
+                                            <th class="text-right">Total Revenue</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr th:if="${dailyRevenue.isEmpty()}">
+                                            <td colspan="3" class="text-center text-muted py-4">
+                                                No revenue data available
+                                            </td>
+                                        </tr>
+                                        <tr th:each="revenue : ${dailyRevenue}">
+                                            <td th:text="${#temporals.format(revenue.date, 'MMMM dd, yyyy')}"></td>
+                                            <td class="text-center">
+                                                <span class="badge bg-primary" th:text="${revenue.totalProductsSold}"></span>
+                                            </td>
+                                            <td class="text-right">
+                                                <strong th:text="'Rp ' + ${#numbers.formatDecimal(revenue.totalRevenue, 1, 2)}"></strong>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

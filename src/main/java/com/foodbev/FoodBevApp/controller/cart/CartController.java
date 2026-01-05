@@ -91,4 +91,21 @@ public class CartController {
         cartService.clearCart(user);
     }
 
+    // ================= GET CART COUNT =================
+    @GetMapping("/count")
+    @ResponseBody
+    public int getCartCount(Principal principal) {
+        if (principal == null) {
+            return 0;
+        }
+        User user = userService.findByEmail(principal.getName());
+        if (user == null) {
+            return 0;
+        }
+        List<CartItem> cartItems = cartService.getUserCart(user);
+        return cartItems.stream()
+                .mapToInt(CartItem::getQuantity)
+                .sum();
+    }
+
 }

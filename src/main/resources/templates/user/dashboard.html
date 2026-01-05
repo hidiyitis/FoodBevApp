@@ -381,6 +381,21 @@
 
         const cartCountEl = document.getElementById('cartCount');
 
+        // Load cart count on page load
+        function loadCartCount() {
+            fetch('/user/cart/count')
+                .then(res => res.json())
+                .then(count => {
+                    cartCountEl.innerText = count;
+                })
+                .catch(err => {
+                    console.error('Failed to load cart count:', err);
+                });
+        }
+
+        // Load cart count when page loads
+        loadCartCount();
+
         document.querySelectorAll('.add-to-cart').forEach(btn => {
             btn.addEventListener('click', function () {
 
@@ -401,10 +416,8 @@
                     return res.text();
                 })
                 .then(msg => {
-
-                    let currentCount = parseInt(cartCountEl.innerText) || 0;
-                    cartCountEl.innerText = currentCount + 1;
-
+                    // Reload cart count from server after adding
+                    loadCartCount();
                     console.log(msg);
                 })
                 .catch(err => {

@@ -224,15 +224,6 @@
                                             th:selected="${stat == selectedStatus}"></option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Items per page</label>
-                                <select name="size" class="form-select" onchange="this.form.submit()">
-                                    <option value="5" th:selected="${pageSize == 5}">5</option>
-                                    <option value="10" th:selected="${pageSize == 10}">10</option>
-                                    <option value="25" th:selected="${pageSize == 25}">25</option>
-                                    <option value="50" th:selected="${pageSize == 50}">50</option>
-                                </select>
-                            </div>
                             <div class="col-md-3 d-flex align-items-end">
                                 <button type="submit" class="btn btn-primary me-2">
                                     <i class="bi bi-funnel me-1"></i>Filter
@@ -337,9 +328,6 @@
                                         <div class="btn-group" role="group">
                                             <a th:href="@{/admin/products/edit/{id}(id=${product.id})}" class="btn btn-sm btn-outline-primary" title="Edit">
                                                 <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a href="#" class="btn btn-sm btn-outline-info" title="View">
-                                                <i class="bi bi-eye"></i>
                                             </a>
                                             <!-- Delete button: disabled if product is DISCONTINUED -->
                                             <form th:if="${product.status.name() != 'DISCONTINUED'}"

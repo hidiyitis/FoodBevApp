@@ -62,9 +62,9 @@ public class AuthController {
      */
     @PostMapping("/register")
     public String registerUser(@Valid @ModelAttribute("user") UserRegistrationDto registrationDto,
-                               BindingResult result,
-                               Model model,
-                               RedirectAttributes redirectAttributes) {
+            BindingResult result,
+            Model model,
+            RedirectAttributes redirectAttributes) {
 
         // Validasi manual untuk konfirmasi password
         if (!registrationDto.getPassword().equals(registrationDto.getConfirmPassword())) {
@@ -83,15 +83,10 @@ public class AuthController {
             }
         }
 
-        // Validasi jika nomor telepon sudah terdaftar
-        if (!result.hasFieldErrors("phone")) {
-            if (userService.existsByPhone(registrationDto.getPhone())) {
-                result.rejectValue("phone", "error.phone", "Phone number already registered");
-            }
-        }
-
         // Jika ada error, kembali ke halaman registrasi
         if (result.hasErrors()) {
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Registration failed! Please try again.");
             return "auth/register";
         }
 
@@ -100,7 +95,8 @@ public class AuthController {
             userService.save(registrationDto);
 
             // Redirect ke halaman login dengan pesan sukses
-            redirectAttributes.addFlashAttribute("successMessage", "Registration successful! Please login to your account.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Registration successful! Please login to your account.");
             return "redirect:/auth/login";
 
         } catch (Exception e) {

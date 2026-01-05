@@ -179,7 +179,7 @@ public class AdminProductController {
 
     // 1. Nampilin form edit (GET) dengan data existing
     // 2. Cari data existing berdasarkan ID
-    // 3. Pakai polymorphism untuk ngecek tipe produk dan add attribute sesuai tipe data
+    // 3. Pakai polymorphism untuk ngecek tipe produk (food/snack/coffee) dan add attribute sesuai tipe data
     // 4. addFormAttributes untuk dropdown
     // 5. Nerima data dari form (POST) dengan validasi
     // 6. Eksekusi service untuk update data

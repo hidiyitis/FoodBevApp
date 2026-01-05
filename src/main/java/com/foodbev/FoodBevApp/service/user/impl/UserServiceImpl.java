@@ -1,5 +1,6 @@
 package com.foodbev.FoodBevApp.service.user.impl;
 
+import com.foodbev.FoodBevApp.constants.RoleConstants;
 import com.foodbev.FoodBevApp.dto.admin.AdminUserRegistrationDto;
 import com.foodbev.FoodBevApp.dto.user.UserRegistrationDto;
 import com.foodbev.FoodBevApp.entity.user.User;
@@ -35,13 +36,7 @@ public class UserServiceImpl implements UserService {
         user.setPhone(registrationDto.getPhone());
         user.setEmail(registrationDto.getEmail());
         user.setPasswordHash(passwordEncoder.encode(registrationDto.getPassword()));
-
-        if (registrationDto.getEmail().equals("admin@foodbev.com")) {
-            user.setRole("ROLE_ADMIN");
-        } else {
-            user.setRole("ROLE_USER");
-        }
-
+        user.setRole(RoleConstants.ROLE_USER);
         user.setIsActive(true);
 
         return userRepository.save(user);
@@ -86,20 +81,21 @@ public class UserServiceImpl implements UserService {
         user.setPhone(dto.getPhone());
         user.setEmail(dto.getEmail());
         user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
-        user.setRole("ROLE_ADMIN");
+        user.setRole(RoleConstants.ROLE_ADMIN);
         user.setIsActive(true);
         return userRepository.save(user);
     }
 
     @Override
     public List<User> findAllUsers() {
-        return userRepository.findByRoleNot("ROLE_ADMIN");
+        return userRepository.findByRoleNot(RoleConstants.ROLE_ADMIN);
     }
 
     @Override
     public List<User> findAllAdmins() {
-        return userRepository.findByRole("ROLE_ADMIN").stream()
-                .skip(1) // Skip the first admin (super admin)
+        // Skip super admin(s) - they are protected and should not appear in admin list
+        return userRepository.findByRole(RoleConstants.ROLE_ADMIN).stream()
+                .skip(RoleConstants.SUPER_ADMIN_COUNT)
                 .collect(Collectors.toList());
     }
 

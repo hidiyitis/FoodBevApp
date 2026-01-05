@@ -5,6 +5,8 @@ import com.foodbev.FoodBevApp.dto.admin.UserResponseDto;
 import com.foodbev.FoodBevApp.entity.user.User;
 import com.foodbev.FoodBevApp.service.user.UserService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,14 +17,21 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin/users")
 public class AdminUserController {
 
+  private static final Logger log = LoggerFactory.getLogger(AdminUserController.class);
+  private static final String ADMIN_USER_LIST_VIEW = "admin/user/list";
+  private static final String REDIRECT_ADMIN_USERS = "redirect:/admin/users";
+
+  private final UserService userService;
+
   @Autowired
-  private UserService userService;
+  public AdminUserController(UserService userService) {
+    this.userService = userService;
+  }
 
   /**
    * Display list of all admins (excluding current logged in user)
@@ -30,20 +39,9 @@ public class AdminUserController {
   @GetMapping
   public String listAdmins(Model model) {
     addCommonAttributes(model);
-
-    // Get current logged in user's email
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    String currentUserEmail = auth.getName();
-
-    // Filter out current user from admin list
-    List<UserResponseDto> admins = userService.findAllAdmins().stream()
-        .filter(user -> !user.getEmail().equals(currentUserEmail))
-        .map(UserResponseDto::fromEntity)
-        .collect(Collectors.toList());
-
-    model.addAttribute("users", admins);
+    model.addAttribute("users", getFilteredAdminList());
     model.addAttribute("adminDto", new AdminUserRegistrationDto());
-    return "admin/user/list";
+    return ADMIN_USER_LIST_VIEW;
   }
 
   /**
@@ -55,6 +53,27 @@ public class AdminUserController {
       Model model,
       RedirectAttributes redirectAttributes) {
 
+    validateAdminRegistration(dto, result);
+
+    if (result.hasErrors()) {
+      addCommonAttributes(model);
+      model.addAttribute("users", getFilteredAdminList());
+      model.addAttribute("showModal", true);
+      return ADMIN_USER_LIST_VIEW;
+    }
+
+    try {
+      userService.saveAdmin(dto);
+      redirectAttributes.addFlashAttribute("successMessage", "Admin account created successfully!");
+      return REDIRECT_ADMIN_USERS;
+    } catch (Exception e) {
+      log.error("Failed to create admin account for email: {}", dto.getEmail(), e);
+      redirectAttributes.addFlashAttribute("errorMessage", "Failed to create admin account. Please try again.");
+      return REDIRECT_ADMIN_USERS;
+    }
+  }
+
+  private void validateAdminRegistration(AdminUserRegistrationDto dto, BindingResult result) {
     // Validate password confirmation
     if (!dto.getPassword().equals(dto.getConfirmPassword())) {
       result.rejectValue("confirmPassword", "error.confirmPassword", "Passwords do not match");
@@ -68,82 +87,35 @@ public class AdminUserController {
           result.rejectValue("email", "error.email", "Email already registered");
         }
       } catch (Exception e) {
-        // Email not found, which means it's available
+        log.debug("Email {} is available for registration", dto.getEmail());
       }
     }
 
     // Check if phone already exists
-    if (!result.hasFieldErrors("phone")) {
-      if (userService.existsByPhone(dto.getPhone())) {
-        result.rejectValue("phone", "error.phone", "Phone number already registered");
-      }
-    }
-
-    if (result.hasErrors()) {
-      addCommonAttributes(model);
-      Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-      String currentUserEmail = auth.getName();
-      List<UserResponseDto> admins = userService.findAllAdmins().stream()
-          .filter(user -> !user.getEmail().equals(currentUserEmail))
-          .map(UserResponseDto::fromEntity)
-          .collect(Collectors.toList());
-      model.addAttribute("users", admins);
-      model.addAttribute("showModal", true);
-      return "admin/user/list";
-    }
-
-    try {
-      userService.saveAdmin(dto);
-      redirectAttributes.addFlashAttribute("successMessage", "Admin account created successfully!");
-      return "redirect:/admin/users";
-    } catch (Exception e) {
-      redirectAttributes.addFlashAttribute("errorMessage", "Failed to create admin account. Please try again.");
-      return "redirect:/admin/users";
+    if (!result.hasFieldErrors("phone") && userService.existsByPhone(dto.getPhone())) {
+      result.rejectValue("phone", "error.phone", "Phone number already registered");
     }
   }
 
   /**
-   * Toggle user active status
+   * Get filtered admin list excluding current logged in user.
+   * Extracted to avoid code duplication.
    */
-  @PostMapping("/{id}/toggle-status")
-  public String toggleUserStatus(@PathVariable Long id,
-      @RequestParam(required = false) String returnTab,
-      RedirectAttributes redirectAttributes) {
-
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    String currentUserEmail = auth.getName();
-
-    try {
-      User user = userService.findById(id)
-          .orElseThrow(() -> new RuntimeException("User not found"));
-
-      // Prevent admin from deactivating themselves
-      if (user.getEmail().equals(currentUserEmail)) {
-        redirectAttributes.addFlashAttribute("errorMessage", "You cannot deactivate your own account!");
-        return getRedirectUrl(returnTab);
-      }
-
-      boolean newStatus = !user.getIsActive();
-      userService.updateUserStatus(id, newStatus);
-
-      String statusText = newStatus ? "activated" : "deactivated";
-      redirectAttributes.addFlashAttribute("successMessage",
-          "User " + user.getName() + " has been " + statusText + " successfully!");
-
-    } catch (Exception e) {
-      redirectAttributes.addFlashAttribute("errorMessage", "Failed to update user status.");
-    }
-
-    return getRedirectUrl(returnTab);
+  private List<UserResponseDto> getFilteredAdminList() {
+    String currentUserEmail = getCurrentUserEmail();
+    return userService.findAllAdmins().stream()
+        .filter(user -> !user.getEmail().equals(currentUserEmail))
+        .map(UserResponseDto::fromEntity)
+        .toList(); // Java 16+ style
   }
 
-  private String getRedirectUrl(String returnTab) {
-    return "redirect:/admin/users";
+  private String getCurrentUserEmail() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    return auth.getName();
   }
 
   private void addCommonAttributes(Model model) {
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    model.addAttribute("username", auth.getName());
+    model.addAttribute("username", getCurrentUserEmail());
     model.addAttribute("isAdmin", true);
   }
 }

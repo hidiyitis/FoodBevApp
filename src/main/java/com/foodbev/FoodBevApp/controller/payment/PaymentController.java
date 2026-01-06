@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -150,15 +149,11 @@ public class PaymentController {
                 order_id, status_code, transaction_status);
 
         try {
-            // Sync payment status from Midtrans API (important for localhost without webhook)
             PaymentResponse paymentResponse = paymentService.checkPaymentStatus(order_id);
-            
             Payment payment = paymentService.getPaymentByMidtransOrderId(order_id);
             model.addAttribute("payment", paymentResponse);
             model.addAttribute("order", payment.getOrder());
             model.addAttribute("success", true);
-            
-            // Redirect to success page for successful payment
             return "payment/success";
         } catch (Exception e) {
             log.error("Error in payment finish", e);
